@@ -3,656 +3,699 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kalimaja Airtron - Sales & Investment Tool</title>
+    <title>Xtron Investor Pitch App</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Tambahan Library untuk Remote Control via WebRTC & QR Code -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#0f172a', // slate-900
+                            primary: '#059669', // emerald-600
+                            light: '#d1fae5', // emerald-100
+                            accent: '#3b82f6', // blue-500
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            scroll-behavior: smooth;
-            overflow-x: hidden;
-            background-color: #f8fafc;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .tab-content { display: none; animation: fadeIn 0.4s ease-in-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
-        .slide {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 4rem 2rem;
-            transition: opacity 0.5s ease;
-        }
-
-        .progress-bar {
-            position: fixed;
-            top: 0; left: 0; height: 5px;
-            background: #2563eb;
-            z-index: 1000;
-            transition: width 0.2s ease;
-        }
-
-        .nav-dots {
-            position: fixed;
-            right: 20px; top: 50%;
-            transform: translateY(-50%);
-            display: flex; flex-direction: column;
-            gap: 12px; z-index: 100;
-        }
-
-        .dot {
-            width: 10px; height: 10px;
-            border-radius: 50%;
-            background: #cbd5e1;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .dot.active {
-            background: #2563eb;
-            transform: scale(1.5);
-        }
-
-        /* Desain Kartu Sektor yang Seimbang */
-        .sector-grid {
-            display: grid;
-            grid-template-cols: 1fr 1fr;
-            gap: 3rem;
-            align-items: center;
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-
-        .card-shadow {
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-        }
-
-        .esg-card { border-left: 4px solid #f59e0b; }
-        .sector-accent { border-left: 4px solid #3b82f6; }
-
-        /* Slide 14 Diagram Custom - Lebar 1/2 Halaman */
-        .diagram-container {
-            width: 50%;
-            margin: 0 auto;
-            border-radius: 2rem;
-            overflow: hidden;
-            background: white;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-        }
-
-        #remote-ui {
-            position: fixed;
-            bottom: 25px; right: 25px;
-            z-index: 1001;
-        }
-
-        @media (max-width: 1024px) {
-            .sector-grid { grid-template-cols: 1fr; gap: 2rem; }
-            .diagram-container { width: 90%; }
-            .slide { padding: 4rem 1rem; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
     </style>
 </head>
-<body class="text-slate-800">
+<body class="text-slate-800 antialiased h-screen flex overflow-hidden selection:bg-brand-primary selection:text-white">
 
-    <div id="progress" class="progress-bar" style="width: 0%"></div>
-
-    <!-- Navigasi Samping -->
-    <div class="nav-dots hidden lg:flex">
-        <a href="#hero" class="dot active"></a>
-        <a href="#problem" class="dot"></a>
-        <a href="#technology" class="dot"></a>
-        <a href="#comparison" class="dot"></a>
-        <a href="#business" class="dot"></a>
-        <a href="#sectors-overview" class="dot"></a>
-        <a href="#hotel-sector" class="dot"></a>
-        <a href="#office-sector" class="dot"></a>
-        <a href="#industry-sector" class="dot"></a>
-        <a href="#medical" class="dot"></a>
-        <a href="#investor-mod" class="dot"></a>
-        <a href="#partner-mod" class="dot"></a>
-        <a href="#customer-mod" class="dot"></a>
-        <a href="#custom-diagram-mod" class="dot"></a>
-        <a href="#closing" class="dot"></a>
-    </div>
-
-    <!-- Tombol Remote Kontrol -->
-    <div id="remote-ui">
-        <button id="btn-remote-toggle" class="bg-blue-600 text-white p-4 rounded-full shadow-2xl hover:bg-blue-700 transition-all border-2 border-white flex items-center gap-2 group">
-            <i class="fas fa-tower-broadcast group-hover:animate-pulse"></i>
-            <span class="text-[10px] font-bold uppercase tracking-widest hidden md:inline">Remote Mode</span>
-        </button>
-    </div>
-
-    <!-- Modal Remote Kontrol -->
-    <div id="remote-modal" class="fixed inset-0 bg-slate-900/80 z-[2000] hidden flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-[2.5rem] p-10 max-w-sm w-full text-center shadow-2xl relative overflow-hidden">
-            <div id="auth-status-bar" class="absolute top-0 left-0 right-0 h-1 bg-amber-500 transition-all duration-500"></div>
-            <p id="auth-status-text" class="text-[9px] font-black uppercase text-amber-600 mb-6 tracking-[0.2em]">Memulai Koneksi Aman...</p>
-
-            <div id="setup-panel">
-                <h3 class="text-xl font-bold mb-4">Sesi Presentasi</h3>
-                <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100 mb-6">
-                    <p class="text-[10px] text-slate-400 font-bold uppercase mb-2 tracking-widest">Kode Akses Laptop</p>
-                    <p id="session-code-display" class="text-5xl font-mono font-bold text-blue-600 tracking-tighter">----</p>
-                </div>
-                <p class="text-[10px] text-slate-400 mb-6 leading-relaxed">Gunakan tombol di bawah pada HP Anda untuk mulai mengontrol slide.</p>
-                <button id="btn-switch-to-remote" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-black transition disabled:opacity-30" disabled>Jadikan HP Sebagai Remote</button>
-            </div>
-
-            <div id="control-panel" class="hidden">
-                <h3 class="text-xl font-bold mb-2">Remote Aktif</h3>
-                <p class="text-[10px] text-green-600 font-bold mb-8 uppercase tracking-widest flex items-center justify-center gap-2">
-                    <span class="w-2 h-2 bg-green-500 rounded-full animate-ping"></span> Sinkronisasi Aktif
-                </p>
-                <div class="grid grid-cols-2 gap-4">
-                    <button id="remote-move-prev" class="bg-slate-100 p-12 rounded-3xl active:scale-90 transition-transform"><i class="fas fa-chevron-left text-2xl"></i></button>
-                    <button id="remote-move-next" class="bg-blue-600 p-12 rounded-3xl text-white active:scale-90 transition-transform shadow-lg"><i class="fas fa-chevron-right text-2xl"></i></button>
-                </div>
-                <button onclick="location.reload()" class="mt-10 text-[10px] text-red-500 font-bold uppercase tracking-widest hover:underline">Putuskan Koneksi</button>
-            </div>
-
-            <div id="connect-input-panel" class="hidden">
-                <h3 class="text-xl font-bold mb-6">Input Kode Sesi</h3>
-                <input type="text" id="input-access-code" maxlength="4" placeholder="0000" class="w-full text-center text-4xl font-mono font-bold p-5 rounded-3xl border-2 border-blue-500 mb-6 focus:ring-8 focus:ring-blue-100 outline-none uppercase">
-                <button id="btn-do-connect" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl">Hubungkan Sekarang</button>
-            </div>
-
-            <button id="btn-close-remote" class="mt-8 text-slate-300 text-[10px] font-bold uppercase hover:text-slate-500 transition tracking-widest">Tutup Menu</button>
+    <!-- Sidebar Navigation -->
+    <aside class="w-20 md:w-64 bg-brand-dark text-white flex flex-col transition-all duration-300 z-20 shadow-2xl">
+        <div class="h-20 flex items-center justify-center border-b border-slate-700">
+            <i class="fa-solid fa-bolt text-brand-primary text-3xl"></i>
+            <span class="hidden md:block ml-3 font-bold text-xl tracking-wider">XTRON</span>
         </div>
-    </div>
-
-    <!-- SLIDE 1: Hero -->
-    <section id="hero" class="slide bg-gradient-to-br from-blue-900 to-blue-700 text-white text-center">
-        <div class="max-w-4xl mx-auto">
-            <h2 class="text-blue-200 font-semibold mb-4 tracking-[0.3em] uppercase text-xs">Kalimaja Airtron</h2>
-            <h1 class="text-4xl md:text-6xl font-bold mb-8 leading-tight">Potong Tagihan Listrik AC Hingga 50%</h1>
-            <p class="text-lg md:text-xl mb-12 text-blue-100 opacity-90 leading-relaxed font-light">Solusi Efisiensi Energi dengan Skema Sewa (Zero CAPEX).<br>Tanpa biaya di muka, bayar murni dari hasil penghematan.</p>
-            <div class="flex flex-wrap justify-center gap-4">
-                <a href="#customer-mod" class="bg-white text-blue-700 px-10 py-4 rounded-2xl font-bold hover:bg-blue-50 transition shadow-2xl">Mulai Audit</a>
-                <a href="#investor-mod" class="border-2 border-white/20 text-white px-10 py-4 rounded-2xl font-bold hover:bg-white/10 transition">Peluang Investasi</a>
-            </div>
-        </div>
-    </section>
-
-    <!-- SLIDE 2: Masalah -->
-    <section id="problem" class="slide bg-white">
-        <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-16 items-center">
-            <div>
-                <h2 class="text-3xl font-bold text-slate-900 mb-8 uppercase tracking-tight">Kebocoran Energi AC</h2>
-                <p class="text-lg text-slate-600 mb-8 leading-relaxed">AC konvensional tetap menjalankan kompresor meskipun koil pipa sudah jenuh termal. Ini adalah pemborosan daya murni yang tidak menghasilkan dingin tambahan.</p>
-                <div class="p-8 bg-red-50 border-l-8 border-red-500 rounded-2xl shadow-sm">
-                    <h4 class="text-red-700 font-bold text-xs uppercase mb-2 tracking-widest">Dampak Finansial:</h4>
-                    <p class="text-red-600 text-sm italic font-medium">"Tagihan bulanan Anda membayar listrik yang terbuang percuma setiap harinya."</p>
-                </div>
-            </div>
-            <div class="bg-slate-100 p-10 rounded-[3rem] border border-slate-200 text-center shadow-inner">
-                <div class="h-48 bg-slate-200 rounded-3xl flex items-end justify-around p-8 gap-8">
-                    <div class="w-24 bg-red-400 h-full rounded-2xl relative shadow-lg">
-                        <span class="absolute -top-8 left-0 right-0 text-[10px] font-black text-red-600 uppercase">Boros</span>
-                    </div>
-                    <div class="w-24 bg-blue-500 h-1/2 rounded-2xl relative shadow-lg">
-                        <span class="absolute -top-8 left-0 right-0 text-[10px] font-black text-blue-600 uppercase">Hemat</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- SLIDE 3: Teknologi -->
-    <section id="technology" class="slide bg-slate-50 text-center">
-        <div class="max-w-6xl mx-auto">
-            <h2 class="text-3xl font-bold mb-16 uppercase tracking-[0.2em] text-blue-900">Teknologi Inti Airtron</h2>
-            <div class="grid md:grid-cols-3 gap-10">
-                <div class="bg-white p-12 rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all border border-slate-100">
-                    <i class="fas fa-microchip text-blue-600 text-4xl mb-8"></i>
-                    <h3 class="font-bold mb-4 uppercase text-xs tracking-widest">Latent Cold Recovery</h3>
-                    <p class="text-slate-500 text-xs leading-relaxed">Memanfaatkan sisa dingin di pipa secara maksimal saat kompresor dimatikan sistem.</p>
-                </div>
-                <div class="bg-white p-12 rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all border border-slate-100">
-                    <i class="fas fa-lock text-blue-600 text-4xl mb-8"></i>
-                    <h3 class="font-bold mb-4 uppercase text-xs tracking-widest">Temperature Lock</h3>
-                    <p class="text-slate-500 text-xs leading-relaxed">Mencegah penyetelan suhu ekstrem yang memboroskan daya hingga 35% di atas standar.</p>
-                </div>
-                <div class="bg-white p-12 rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all border border-slate-100">
-                    <i class="fas fa-gauge-high text-blue-600 text-4xl mb-8"></i>
-                    <h3 class="font-bold mb-4 uppercase text-xs tracking-widest">Dual NTC Sensor</h3>
-                    <p class="text-slate-500 text-xs leading-relaxed">Akurasi sensor $\pm 0.1^\circ C$ untuk kontrol suhu paling presisi di kelasnya.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- SLIDE 4: Perbandingan -->
-    <section id="comparison" class="slide bg-white">
-        <div class="max-w-5xl mx-auto">
-            <h2 class="text-3xl font-bold text-center mb-12 uppercase tracking-widest text-slate-900">Analisis Nilai Bisnis</h2>
-            <div class="overflow-hidden rounded-[2.5rem] border border-slate-200 shadow-2xl">
-                <table class="w-full text-left">
-                    <thead class="bg-slate-50 border-b border-slate-200">
-                        <tr class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                            <th class="p-10">Parameter Utama</th>
-                            <th class="p-10">Metode Standar</th>
-                            <th class="p-10 text-blue-700 bg-blue-50/50 text-center">Kalimaja Airtron</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 text-sm">
-                        <tr><td class="p-10 font-semibold text-slate-700">Investasi Awal</td><td class="p-10 text-red-500 font-bold uppercase">High CAPEX</td><td class="p-10 bg-blue-50/20 text-green-600 font-black text-center uppercase tracking-widest italic">ZERO CAPEX</td></tr>
-                        <tr><td class="p-10 font-semibold text-slate-700">Risiko Kegagalan</td><td class="p-10">Klien Tanggung</td><td class="p-10 bg-blue-50/20 text-green-600 font-black text-center uppercase tracking-widest italic">ZERO RISK</td></tr>
-                        <tr><td class="p-10 font-semibold text-slate-700">Masa Payback</td><td class="p-10 italic text-slate-400">Tidak Pasti</td><td class="p-10 bg-blue-50/20 font-black text-blue-700 text-center tracking-widest">3-4 Bulan</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </section>
-
-    <!-- SLIDE 5: Model Bisnis -->
-    <section id="business" class="slide bg-blue-900 text-white text-center">
-        <h2 class="text-3xl font-bold mb-10 uppercase tracking-[0.2em]">Skema Bagi Hasil Transparan</h2>
-        <div class="bg-blue-800 p-12 rounded-[4rem] inline-block max-w-xl border border-blue-700 shadow-2xl">
-            <div class="flex justify-between items-center gap-16 border-b border-blue-700 pb-12 mb-10 text-center">
-                <div><p class="text-[10px] uppercase font-bold opacity-50 mb-3 tracking-[0.3em]">Profit Klien</p><p class="text-6xl font-bold text-green-400">40%</p></div>
-                <div class="text-4xl opacity-20"><i class="fas fa-arrows-left-right"></i></div>
-                <div><p class="text-[10px] uppercase font-bold opacity-50 mb-3 tracking-[0.3em]">Jasa Sewa</p><p class="text-6xl font-bold text-blue-200">60%</p></div>
-            </div>
-            <p class="text-sm italic font-light opacity-60 leading-relaxed max-w-sm mx-auto">"Pembagian dihitung dari penghematan nyata pada tagihan listrik Anda. Jika tidak hemat, Anda tidak perlu bayar."</p>
-        </div>
-    </section>
-
-    <!-- SLIDE 6: Sektor Overview -->
-    <section id="sectors-overview" class="slide bg-white text-center">
-        <h2 class="text-3xl font-bold mb-16 uppercase tracking-widest">Efisiensi Lintas Industri</h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-5xl mx-auto">
-            <a href="#hotel-sector" class="p-10 border-2 border-slate-50 rounded-[3rem] hover:border-blue-500 hover:bg-white hover:shadow-2xl transition-all group">
-                <i class="fas fa-hotel text-4xl text-blue-600 mb-6 group-hover:scale-110 transition"></i>
-                <p class="text-[10px] font-black uppercase text-slate-400 mb-2">Hotel</p>
-                <p class="text-3xl font-bold text-blue-700">50%</p>
-            </a>
-            <a href="#office-sector" class="p-10 border-2 border-slate-50 rounded-[3rem] hover:border-blue-500 hover:bg-white hover:shadow-2xl transition-all group">
-                <i class="fas fa-building text-4xl text-blue-600 mb-6 group-hover:scale-110 transition"></i>
-                <p class="text-[10px] font-black uppercase text-slate-400 mb-2">Kantor</p>
-                <p class="text-3xl font-bold text-blue-700">40%</p>
-            </a>
-            <a href="#industry-sector" class="p-10 border-2 border-slate-50 rounded-[3rem] hover:border-blue-500 hover:bg-white hover:shadow-2xl transition-all group">
-                <i class="fas fa-industry text-4xl text-blue-600 mb-6 group-hover:scale-110 transition"></i>
-                <p class="text-[10px] font-black uppercase text-slate-400 mb-2">Industri</p>
-                <p class="text-3xl font-bold text-blue-700">50%</p>
-            </a>
-            <a href="#medical" class="p-10 border-2 border-slate-50 rounded-[3rem] hover:border-blue-500 hover:bg-white hover:shadow-2xl transition-all group">
-                <i class="fas fa-hospital text-4xl text-blue-600 mb-6 group-hover:scale-110 transition"></i>
-                <p class="text-[10px] font-black uppercase text-slate-400 mb-2">Medis</p>
-                <p class="text-3xl font-bold text-blue-700">45%</p>
-            </a>
-        </div>
-    </section>
-
-    <!-- Restorasi Sektor Detail (Slides 7-10) -->
-    <section id="hotel-sector" class="slide bg-slate-50">
-        <div class="sector-grid">
-            <div class="space-y-8">
-                <h2 class="text-4xl font-bold uppercase tracking-tighter text-blue-900 border-b-8 border-blue-500 inline-block pb-2 mb-4">Hotel & Apartemen</h2>
-                <div class="p-8 bg-white rounded-3xl sector-accent shadow-sm">
-                    <h4 class="text-blue-600 font-bold uppercase text-[10px] mb-3 tracking-widest">Pain Points:</h4>
-                    <p class="text-sm text-slate-500 leading-relaxed font-medium">Operasional 24 jam dengan beban pendinginan konstan dan kebiasaan tamu menyetel suhu ekstrem rendah tanpa pengawasan.</p>
-                </div>
-                <div class="p-8 bg-white rounded-3xl border-l-4 border-green-500 shadow-sm">
-                    <h4 class="text-green-600 font-bold uppercase text-[10px] mb-3 tracking-widest">Solutions:</h4>
-                    <p class="text-sm text-slate-500 leading-relaxed font-medium">Temperature Lock menghentikan pemborosan tanpa tamu sadari, menjaga kenyamanan tetap sejuk namun biaya operasional turun drastis.</p>
-                </div>
-            </div>
-            <div class="bg-blue-600 p-20 rounded-[4rem] text-white text-center shadow-2xl relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-10 opacity-10"><i class="fas fa-hotel text-9xl"></i></div>
-                <div class="text-9xl font-bold tracking-tighter">50%</div>
-                <p class="text-sm uppercase font-bold tracking-[0.4em] mt-6 opacity-70">Max Efficiency</p>
-            </div>
-        </div>
-    </section>
-
-    <section id="office-sector" class="slide bg-white">
-        <div class="sector-grid">
-            <div class="bg-slate-100 p-20 rounded-[4rem] text-blue-600 text-center border border-slate-200 shadow-inner order-2 lg:order-1 relative overflow-hidden">
-                <div class="absolute top-0 left-0 p-10 opacity-5"><i class="fas fa-building text-9xl"></i></div>
-                <div class="text-9xl font-bold tracking-tighter">40%</div>
-                <p class="text-sm uppercase font-bold tracking-[0.4em] mt-6 opacity-50">Corporate Standard</p>
-            </div>
-            <div class="space-y-8 order-1 lg:order-2 text-right">
-                <h2 class="text-4xl font-bold uppercase tracking-tighter text-slate-900 border-b-8 border-blue-600 inline-block pb-2 mb-4">Gedung Perkantoran</h2>
-                <div class="p-10 bg-slate-50 rounded-[3rem] sector-accent text-right card-shadow">
-                    <h4 class="text-blue-600 font-bold uppercase text-[10px] mb-6 tracking-widest">Financial Strategy:</h4>
-                    <p class="text-lg text-slate-600 italic font-light leading-relaxed">"Ubah pengeluaran rutin operasional AC yang tinggi menjadi laba bersih perusahaan melalui efisiensi daya yang terukur secara real-time."</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="industry-sector" class="slide bg-slate-50">
-        <div class="sector-grid">
-            <div class="space-y-8">
-                <h2 class="text-4xl font-bold uppercase tracking-tighter text-slate-900 border-b-8 border-slate-800 inline-block pb-2 mb-4">Pabrik & Industri</h2>
-                <div class="p-10 bg-white rounded-[3rem] sector-accent border border-slate-100 card-shadow">
-                    <h4 class="font-bold text-blue-600 uppercase text-[10px] mb-6 tracking-widest">Ketahanan Beban Makro:</h4>
-                    <p class="text-sm text-slate-500 leading-relaxed font-medium">Dirancang khusus untuk sistem cold storage dan unit pendingin besar yang bekerja ekstrem. Airtron memberikan efisiensi tanpa merusak siklus kerja motor industri.</p>
-                </div>
-            </div>
-            <div class="bg-slate-900 p-20 rounded-[4.5rem] text-center shadow-2xl relative overflow-hidden">
-                <div class="absolute -top-10 -right-10 opacity-5"><i class="fas fa-industry text-[15rem]"></i></div>
-                <div class="text-8xl font-bold text-blue-400 tracking-tighter">Hingga 50%</div>
-                <p class="text-xs uppercase font-bold mt-6 opacity-50 tracking-[0.3em] text-blue-200">Industrial Efficiency</p>
-            </div>
-        </div>
-    </section>
-
-    <section id="medical" class="slide bg-slate-900 text-white">
-        <div class="max-w-5xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
-            <div class="space-y-12">
-                <h2 class="text-4xl font-bold uppercase tracking-widest text-blue-400 border-l-8 border-blue-500 pl-8">Fasilitas Medis</h2>
-                <div class="flex gap-8 items-start group">
-                    <div class="w-16 h-16 bg-blue-900/50 rounded-2xl flex items-center justify-center flex-shrink-0 text-blue-400 border border-blue-700 shadow-xl group-hover:bg-blue-600 transition-colors"><i class="fas fa-microscope text-2xl"></i></div>
-                    <p class="text-sm text-slate-300 italic font-light leading-relaxed">Menjamin stabilitas suhu presisi $\pm 0.1^\circ C$ untuk ruang laboratorium dan penyimpanan obat farmasi yang sangat sensitif.</p>
-                </div>
-                <div class="flex gap-8 items-start group">
-                    <div class="w-16 h-16 bg-blue-900/50 rounded-2xl flex items-center justify-center flex-shrink-0 text-blue-400 border border-blue-700 shadow-xl group-hover:bg-blue-600 transition-colors"><i class="fas fa-shield-heart text-2xl"></i></div>
-                    <p class="text-sm text-slate-300 italic font-light leading-relaxed">Aman 100% untuk infrastruktur medis tanpa risiko gangguan frekuensi pada peralatan kesehatan elektronik canggih.</p>
-                </div>
-            </div>
-            <div class="bg-blue-950 p-20 rounded-[4rem] border border-blue-800 text-center shadow-2xl">
-                <div class="text-8xl font-bold text-blue-400 tracking-tighter">45%</div>
-                <p class="text-[10px] uppercase font-bold tracking-[0.5em] mt-6 opacity-50 text-blue-200">Precision Lab Standards</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Modul Investor, Partner, Customer (11-13) -->
-    <section id="investor-mod" class="slide bg-slate-800 text-white text-center">
-        <span class="module-badge bg-amber-500">Investor Module</span>
-        <h2 class="text-3xl font-bold mb-16 uppercase tracking-[0.2em]">Investasi & ESG</h2>
-        <div class="grid md:grid-cols-3 gap-8 text-left max-w-6xl mx-auto">
-            <div class="p-12 bg-slate-700/50 rounded-[3rem] esg-card border border-slate-600 transition hover:bg-slate-700 shadow-xl">
-                <h4 class="font-bold text-green-400 text-xs mb-6 uppercase tracking-widest"><i class="fas fa-leaf mr-2 text-sm"></i>Environmental</h4>
-                <p class="text-[11px] text-slate-300 leading-relaxed opacity-80 font-light italic">"Mendukung agenda Net Zero Emission dengan mereduksi jutaan ton jejak karbon melalui efisiensi energi nasional."</p>
-            </div>
-            <div class="p-12 bg-slate-700/50 rounded-[3rem] esg-card border border-slate-600 transition hover:bg-slate-700 shadow-xl">
-                <h4 class="font-bold text-blue-400 text-xs mb-6 uppercase tracking-widest"><i class="fas fa-users mr-2 text-sm"></i>Social</h4>
-                <p class="text-[11px] text-slate-300 leading-relaxed opacity-80 font-light italic">"Memberdayakan jaringan teknisi lokal dan meningkatkan kualitas produktivitas udara kerja bagi ribuan staf."</p>
-            </div>
-            <div class="p-12 bg-slate-700/50 rounded-[3rem] esg-card border border-slate-600 transition hover:bg-slate-700 shadow-xl">
-                <h4 class="font-bold text-amber-400 text-xs mb-6 uppercase tracking-widest"><i class="fas fa-gavel mr-2 text-sm"></i>Governance</h4>
-                <p class="text-[11px] text-slate-300 leading-relaxed opacity-80 font-light italic">"Model bisnis berbasis performa yang 100% transparan, etis, dan diaudit secara riil tanpa biaya modal awal bagi klien."</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Slide 12: Partner -->
-    <section id="partner-mod" class="slide bg-blue-50 text-center">
-        <span class="module-badge bg-blue-600 text-white">Partner Module</span>
-        <h2 class="text-3xl font-bold mb-10 text-slate-900 uppercase tracking-widest">Kemitraan Sales Strategis</h2>
-        <div class="bg-white p-16 rounded-[5rem] shadow-2xl border border-slate-100 inline-block max-w-xl text-left relative overflow-hidden">
-            <div class="absolute -top-5 -right-5 opacity-5"><i class="fas fa-handshake text-9xl"></i></div>
-            <div class="w-20 h-20 bg-blue-50 rounded-[2rem] flex items-center justify-center text-blue-600 mb-10 text-3xl shadow-inner"><i class="fas fa-chart-line"></i></div>
-            <h4 class="font-bold text-blue-600 mb-6 uppercase text-sm tracking-widest">Recurring Revenue Program</h4>
-            <p class="text-lg text-slate-500 leading-relaxed italic font-light">"Nikmati komisi berkelanjutan dari setiap unit yang terpasang di klien Anda selama masa kontrak sewa 12-36 bulan. Kami sediakan audit teknis & closing support penuh."</p>
-        </div>
-    </section>
-
-    <!-- Slide 13: Customer Blueprint -->
-    <section id="customer-mod" class="slide bg-white text-center">
-        <span class="module-badge bg-green-600 text-white">Customer Module</span>
-        <h2 class="text-3xl font-bold mb-12 uppercase tracking-[0.2em] text-slate-900">Self Assessment Audit</h2>
-        <div class="grid lg:grid-cols-2 gap-16 items-center text-left max-w-5xl mx-auto">
-            <div>
-                <h3 class="font-bold text-green-700 mb-8 text-xs uppercase tracking-[0.3em] text-center lg:text-left">Unggah Denah Gedung</h3>
-                <div class="bg-slate-50 p-16 rounded-[4rem] border-4 border-dashed border-slate-200 hover:border-green-500 hover:bg-green-50/30 transition-all cursor-pointer text-center group" onclick="document.getElementById('file-input-bp').click()">
-                    <i class="fas fa-cloud-arrow-up text-5xl text-slate-300 mb-6 group-hover:text-green-500 transition-colors"></i>
-                    <p class="text-xs font-bold text-slate-700 uppercase tracking-widest">Klik Untuk Memilih File</p>
-                    <input type="file" id="file-input-bp" class="hidden" accept="image/*" onchange="handleFilePreview(this, 'preview-box-bp', 'img-preview-bp')">
-                </div>
-                <div id="preview-box-bp" class="hidden mt-8 text-center bg-white p-6 rounded-[2.5rem] border shadow-xl">
-                    <img id="img-preview-bp" src="" class="mx-auto rounded-3xl max-h-60 border-4 border-slate-50">
-                    <button onclick="handleFileClear('file-input-bp', 'preview-box-bp')" class="text-[10px] text-red-500 mt-6 font-black uppercase tracking-[0.3em] hover:underline">Hapus File</button>
-                </div>
-            </div>
-            <div class="bg-slate-50 p-16 rounded-[4rem] border border-slate-200 text-xs leading-relaxed text-slate-500 shadow-inner italic relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-8 opacity-5"><i class="fas fa-microchip text-8xl"></i></div>
-                <p class="relative z-10 font-medium text-lg leading-relaxed">
-                    <i class="fas fa-shield-check text-blue-500 mr-4"></i>
-                    Airtron adalah <span class="font-black text-blue-700 uppercase underline decoration-2">Hardware Mandiri</span>. 
-                    Sekali terpasang, ia bekerja 24/7 tanpa bergantung pada laptop Anda. Laptop hanya digunakan untuk presentasi data saat ini.
-                </p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Slide 14: Diagram Kustom (Setengah Halaman - Rapi) -->
-    <section id="custom-diagram-mod" class="slide bg-slate-100 text-center">
-        <span class="module-badge bg-indigo-600 text-white">Technical Diagram</span>
-        <h2 class="text-3xl font-bold mb-10 uppercase tracking-widest text-slate-800">Layout Teknis Mandiri</h2>
-        
-        <div id="diag-upload-box" class="bg-white p-16 rounded-[4rem] border-2 border-dashed border-slate-300 hover:border-indigo-500 transition cursor-pointer max-w-md mx-auto shadow-lg mb-10" onclick="document.getElementById('file-input-diag').click()">
-            <i class="fas fa-image text-4xl text-slate-300 mb-6"></i>
-            <h4 class="font-bold text-slate-800 mb-1 text-xs uppercase tracking-widest">Pilih File Diagram</h4>
-            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Diagram Tersimpan Secara Lokal</p>
-            <input type="file" id="file-input-diag" class="hidden" accept="image/*" onchange="handleFilePreview(this, 'diag-display-box', 'img-display-diag', true)">
-        </div>
-
-        <div id="diag-display-box" class="hidden diagram-container p-8">
-            <p class="text-[10px] text-indigo-600 font-black uppercase mb-6 tracking-[0.4em]">Diagram Terpasang</p>
-            <img id="img-display-diag" src="" class="w-full h-auto rounded-[2rem] border-8 border-slate-50 shadow-inner">
-            <div class="mt-10 flex justify-center gap-10">
-                <button onclick="document.getElementById('file-input-diag').click()" class="text-[10px] bg-slate-900 text-white px-8 py-3 rounded-full font-bold uppercase tracking-widest shadow-xl">Ganti</button>
-                <button onclick="handleFileClear('file-input-diag', 'diag-display-box', true)" class="text-[10px] text-red-500 font-bold uppercase tracking-widest hover:underline">Hapus Permanen</button>
-            </div>
-        </div>
-    </section>
-
-    <!-- Slide 15: Closing -->
-    <section id="closing" class="slide bg-slate-50 text-center">
-        <h2 class="text-4xl font-bold mb-16 uppercase tracking-[0.5em] text-blue-900">Mulai Hemat</h2>
-        <div class="max-w-md mx-auto bg-white p-16 rounded-[5rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] border border-slate-100">
-            <p class="text-xs text-slate-400 mb-10 uppercase font-black tracking-[0.3em]">Konsultasi Audit Gratis</p>
-            <button onclick="window.open('https://wa.me/6285111033789')" class="w-full bg-green-600 text-white font-bold py-8 rounded-[2rem] flex items-center justify-center gap-6 hover:bg-green-700 transition shadow-2xl uppercase text-sm tracking-widest">
-                <i class="fab fa-whatsapp text-3xl"></i> WhatsApp Kami
+        <nav class="flex-1 overflow-y-auto py-6 flex flex-col gap-2 px-3">
+            <button onclick="openTab('summary')" class="tab-btn w-full flex items-center p-3 rounded-lg hover:bg-slate-800 transition-colors bg-brand-primary text-white" data-target="summary">
+                <i class="fa-solid fa-chart-pie w-6 text-center"></i>
+                <span class="hidden md:block ml-3 text-sm font-medium text-left">Peluang Investasi</span>
             </button>
-            <p class="mt-14 text-[9px] text-slate-300 uppercase font-black tracking-[0.4em]">PT KALIMAJA SURYA ALAM &copy; 2026</p>
+            <button onclick="openTab('solution')" class="tab-btn w-full flex items-center p-3 rounded-lg hover:bg-slate-800 transition-colors text-slate-300" data-target="solution">
+                <i class="fa-solid fa-microchip w-6 text-center"></i>
+                <span class="hidden md:block ml-3 text-sm font-medium text-left">Solusi & Teknologi</span>
+            </button>
+            <button onclick="openTab('simulation')" class="tab-btn w-full flex items-center p-3 rounded-lg hover:bg-slate-800 transition-colors text-slate-300" data-target="simulation">
+                <i class="fa-solid fa-calculator w-6 text-center"></i>
+                <span class="hidden md:block ml-3 text-sm font-medium text-left">Simulasi Bagi Hasil</span>
+            </button>
+            <button onclick="openTab('market')" class="tab-btn w-full flex items-center p-3 rounded-lg hover:bg-slate-800 transition-colors text-slate-300" data-target="market">
+                <i class="fa-solid fa-building w-6 text-center"></i>
+                <span class="hidden md:block ml-3 text-sm font-medium text-left">Target Pasar</span>
+            </button>
+            <button onclick="openTab('tiers')" class="tab-btn w-full flex items-center p-3 rounded-lg hover:bg-slate-800 transition-colors text-slate-300" data-target="tiers">
+                <i class="fa-solid fa-layer-group w-6 text-center"></i>
+                <span class="hidden md:block ml-3 text-sm font-medium text-left">Tier Investasi</span>
+            </button>
+            <button onclick="openTab('portal')" class="tab-btn w-full flex items-center p-3 rounded-lg hover:bg-slate-800 transition-colors text-slate-300" data-target="portal">
+                <i class="fa-solid fa-shield-halved w-6 text-center"></i>
+                <span class="hidden md:block ml-3 text-sm font-medium text-left">Transparansi Portal</span>
+            </button>
+            
+            <!-- Tombol Aktifkan Remote Control -->
+            <button onclick="openQRModal()" class="mt-6 w-full flex items-center p-3 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors text-emerald-400 border border-emerald-500/30 shadow-lg group">
+                <i class="fa-solid fa-mobile-screen-button w-6 text-center group-hover:animate-bounce"></i>
+                <span class="hidden md:block ml-3 text-sm font-bold text-left">Remote via HP</span>
+            </button>
+
+            <!-- Tombol Manual PIN -->
+            <button onclick="enterManualRemote()" class="mt-2 w-full flex items-center p-3 rounded-lg bg-transparent hover:bg-slate-800 transition-colors text-slate-400 border border-slate-700/50 group">
+                <i class="fa-solid fa-keyboard w-6 text-center group-hover:text-white"></i>
+                <span class="hidden md:block ml-3 text-xs font-medium text-left">Input PIN Remote</span>
+            </button>
+        </nav>
+        <div class="p-4 border-t border-slate-700 hidden md:block">
+            <p class="text-xs text-slate-400">PT Kalimaja Surya Alam</p>
+            <p class="text-xs font-bold text-emerald-400 mt-1">Smart Energy System</p>
         </div>
-    </section>
+    </aside>
 
-    <!-- FIREBASE & LOGIC ENGINE (STABILIZED) -->
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
-        import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+    <!-- Main Content Area -->
+    <main class="flex-1 h-full overflow-y-auto bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-slate-50 relative">
+        <div class="absolute inset-0 bg-gradient-to-br from-slate-50/90 to-slate-200/90 z-0"></div>
+        
+        <div class="relative z-10 max-w-5xl mx-auto p-6 md:p-10">
 
-        // 1. Firebase Initialization
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'airtron-sales-v3';
+            <!-- TAB: SUMMARY -->
+            <section id="summary" class="tab-content active">
+                <div class="text-center mb-10">
+                    <span class="text-brand-primary font-bold tracking-widest uppercase text-sm">Kesempatan Investasi</span>
+                    <h1 class="text-4xl md:text-5xl font-extrabold text-brand-dark mt-2 mb-4 leading-tight">Solusi "Zero CAPEX" Efisiensi <br/>Energi AC & Pendingin</h1>
+                    <p class="text-lg text-slate-600 max-w-2xl mx-auto">Disrupsi industri kelistrikan dengan teknologi Retrofit Kalimaja Xtron. Turunkan tagihan listrik klien hingga 50% tanpa modal awal mereka.</p>
+                </div>
 
-        // 2. State & Constants
-        let user = null;
-        let sessionId = "";
-        let isRemoteMode = false;
-        let currentSlideIndex = 0;
-        const slides = ['hero', 'problem', 'technology', 'comparison', 'business', 'sectors-overview', 'hotel-sector', 'office-sector', 'industry-sector', 'medical', 'investor-mod', 'partner-mod', 'customer-mod', 'custom-diagram-mod', 'closing'];
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div class="glass-card p-6 rounded-2xl shadow-lg border-t-4 border-t-brand-primary">
+                        <i class="fa-solid fa-arrow-trend-down text-3xl text-brand-primary mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">Pain Point Utama</h3>
+                        <p class="text-slate-600 text-sm">Biaya listrik (AC/Freezer) memakan hingga 60% total pengeluaran operasional sebuah bisnis.</p>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl shadow-lg border-t-4 border-t-brand-accent">
+                        <i class="fa-solid fa-handshake-angle text-3xl text-brand-accent mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">Penawaran Klien</h3>
+                        <p class="text-slate-600 text-sm">Audit & Instalasi GRATIS. Klien tidak perlu modal (Zero CAPEX). Mereka bayar dari selisih penghematan.</p>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl shadow-lg border-t-4 border-t-orange-500">
+                        <i class="fa-solid fa-coins text-3xl text-orange-500 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">Peluang Investor</h3>
+                        <p class="text-slate-600 text-sm">Mendanai pengadaan alat dengan Payback Period (BEP) super cepat (3-4 bulan) & recurring income pasif.</p>
+                    </div>
+                </div>
 
-        // 3. UI References
-        const modal = document.getElementById('remote-modal');
-        const setupPanel = document.getElementById('setup-panel');
-        const controlPanel = document.getElementById('control-panel');
-        const inputPanel = document.getElementById('connect-input-panel');
-        const authText = document.getElementById('auth-status-text');
-        const authBar = document.getElementById('auth-status-bar');
-        const btnSwitch = document.getElementById('btn-switch-to-remote');
-        const codeDisplay = document.getElementById('session-code-display');
-        const codeInput = document.getElementById('input-access-code');
+                <div class="bg-brand-dark rounded-2xl p-8 text-white shadow-2xl flex flex-col md:flex-row items-center gap-8">
+                    <div class="flex-1">
+                        <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-circle-check text-brand-primary"></i> Mengapa Klien Pasti Mau?</h2>
+                        <ul class="space-y-3">
+                            <li class="flex items-start gap-3"><i class="fa-solid fa-check mt-1 text-emerald-400"></i> <span><strong>Tanpa Risiko:</strong> Jika tidak hemat, klien tidak perlu bayar. Sangat mudah dijual oleh tim sales.</span></li>
+                            <li class="flex items-start gap-3"><i class="fa-solid fa-check mt-1 text-emerald-400"></i> <span><strong>Tanpa Merusak:</strong> Sistem Retrofit yang di-bypass tanpa mengubah estetika atau membongkar AC utama.</span></li>
+                            <li class="flex items-start gap-3"><i class="fa-solid fa-check mt-1 text-emerald-400"></i> <span><strong>Suhu Terjaga:</strong> Tidak mengurangi tingkat kesejukan ruangan, hanya memotong siklus pemborosan daya.</span></li>
+                        </ul>
+                    </div>
+                    <div class="w-full md:w-1/3 bg-slate-800 rounded-xl p-6 text-center border border-slate-700">
+                        <p class="text-slate-400 text-sm mb-2">Target Penghematan Listrik</p>
+                        <p class="text-5xl font-extrabold text-brand-light">50<span class="text-3xl">%</span></p>
+                        <button onclick="openTab('simulation')" class="mt-4 w-full bg-brand-primary hover:bg-emerald-500 text-white font-bold py-2 px-4 rounded transition-colors shadow-lg shadow-emerald-500/30">Lihat Simulasi</button>
+                    </div>
+                </div>
+            </section>
 
-        // 4. RULE 3: Strict Authentication FIRST
-        const initializeConnection = async () => {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (err) {
-                authText.innerText = "Gagal Terhubung ke Server";
-                authText.classList.replace('text-amber-600', 'text-red-500');
-            }
-        };
+            <!-- TAB: SOLUTION -->
+            <section id="solution" class="tab-content">
+                <div class="mb-10 border-b border-slate-200 pb-6">
+                    <h2 class="text-3xl font-bold text-brand-dark mb-2">Solusi & Teknologi Xtron</h2>
+                    <p class="text-slate-600">Sains termal di balik penghematan energi masif tanpa mengurangi kenyamanan ruang.</p>
+                </div>
 
-        onAuthStateChanged(auth, (u) => {
-            user = u;
-            if (user) {
-                authText.innerText = "Sistem Sinkronisasi Siap";
-                authText.classList.replace('text-amber-600', 'text-green-600');
-                authBar.classList.replace('bg-amber-500', 'bg-green-500');
-                btnSwitch.disabled = false;
-                
-                // Laptop auto-creates a session ID for its receiver listener
-                if (!sessionId && !isRemoteMode) {
-                    sessionId = Math.floor(1000 + Math.random() * 9000).toString();
-                    codeDisplay.innerText = sessionId;
-                }
-            }
-        });
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                    <div>
+                        <div class="mb-8">
+                            <h3 class="text-xl font-bold text-rose-600 mb-2 flex items-center gap-2"><i class="fa-solid fa-circle-xmark"></i> Inefisiensi Konvensional</h3>
+                            <p class="text-slate-700">AC konvensional terus memaksa kompresor bekerja meski koil pipa sudah mencapai titik jenuh termal. Ini membuang daya (watt) dalam jumlah besar secara sia-sia.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-brand-primary mb-2 flex items-center gap-2"><i class="fa-solid fa-microchip"></i> Teknologi Xtron (Latent Cold)</h3>
+                            <p class="text-slate-700">Retrofit <strong>Microprocessor 8-Bit High Speed</strong> kami dilengkapi sensor <strong>Dual NTC</strong> dengan akurasi ±0.1°C. Sistem akan membaca kejenuhan termal dan memutus daya kompresor secara pintar, lalu memanfaatkan "Sisa Dingin" (Latent Cold) melalui hembusan kipas.</p>
+                        </div>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl shadow-xl border border-slate-200 bg-white">
+                        <h4 class="font-bold text-center text-slate-800 mb-6 border-b pb-4">Spesifikasi Teknis</h4>
+                        <ul class="space-y-4">
+                            <li class="flex justify-between items-center bg-slate-50 p-3 rounded">
+                                <span class="font-medium text-slate-600">Chipset</span>
+                                <span class="font-bold text-brand-dark">Microprocessor 8-Bit</span>
+                            </li>
+                            <li class="flex justify-between items-center bg-slate-50 p-3 rounded">
+                                <span class="font-medium text-slate-600">Akurasi Sensor</span>
+                                <span class="font-bold text-brand-dark">Dual NTC (±0.1°C)</span>
+                            </li>
+                            <li class="flex justify-between items-center bg-slate-50 p-3 rounded">
+                                <span class="font-medium text-slate-600">Power Draw</span>
+                                <span class="font-bold text-brand-dark">< 1.5 Watt</span>
+                            </li>
+                            <li class="flex justify-between items-center bg-slate-50 p-3 rounded">
+                                <span class="font-medium text-slate-600">Response Time</span>
+                                <span class="font-bold text-brand-dark">Real-Time Sync</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
 
-        initializeConnection();
+            <!-- TAB: SIMULATION (INTERACTIVE) -->
+            <section id="simulation" class="tab-content">
+                <div class="mb-10 border-b border-slate-200 pb-6">
+                    <h2 class="text-3xl font-bold text-brand-dark mb-2">Simulasi Bagi Hasil (Profit Sharing)</h2>
+                    <p class="text-slate-600">Hitung proyeksi pendapatan nyata per bulan berdasarkan data tagihan listrik klien.</p>
+                </div>
 
-        // 5. Engine Logic
-        const navigateTo = (idx) => {
-            if (idx < 0 || idx >= slides.length) return;
-            currentSlideIndex = idx;
-            const target = document.getElementById(slides[idx]);
-            if (target) target.scrollIntoView({ behavior: 'smooth' });
-        };
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <!-- Calculator Inputs -->
+                    <div class="lg:col-span-5 glass-card bg-white p-6 rounded-2xl shadow-lg border border-slate-200">
+                        <h3 class="font-bold text-lg mb-6 flex items-center gap-2"><i class="fa-solid fa-sliders text-brand-primary"></i> Parameter Simulasi</h3>
+                        
+                        <div class="space-y-5">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Tagihan Listrik Normal/Bulan (Rp)</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-2.5 text-slate-400 font-bold">Rp</span>
+                                    <input type="number" id="calc-bill" value="10000000" class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all font-mono" oninput="calculateROI()">
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Target Penghematan Alat (%)</label>
+                                <input type="range" id="calc-saving" min="20" max="60" value="40" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand-primary" oninput="document.getElementById('saving-val').innerText = this.value + '%'; calculateROI()">
+                                <div class="text-right text-sm font-bold text-brand-primary mt-1" id="saving-val">40%</div>
+                            </div>
 
-        let unsubListener = null;
-        const bindToSession = (id) => {
-            if (unsubListener) unsubListener();
-            const sessionRef = doc(db, 'artifacts', appId, 'public', 'data', 'sessions', id);
-            unsubListener = onSnapshot(sessionRef, (snap) => {
-                if (snap.exists() && !isRemoteMode) {
-                    const data = snap.data();
-                    if (typeof data.idx === 'number') {
-                        navigateTo(data.idx);
-                    }
-                }
-            }, (err) => console.warn("Snapshot Sync Error:", err));
-        };
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Porsi Bagi Hasil untuk Klien (%)</label>
+                                <input type="range" id="calc-client-share" min="10" max="50" value="30" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand-accent" oninput="document.getElementById('client-share-val').innerText = this.value + '%'; calculateROI()">
+                                <div class="flex justify-between text-xs mt-1">
+                                    <span class="text-slate-500">Investor: <span id="investor-share-val" class="font-bold">70%</span></span>
+                                    <span class="text-brand-accent font-bold text-sm" id="client-share-val">30%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-        const pushUpdateToServer = async (idx) => {
-            if (!user || !sessionId) return;
-            const sessionRef = doc(db, 'artifacts', appId, 'public', 'data', 'sessions', sessionId);
-            try {
-                await setDoc(sessionRef, { idx: idx, ts: Date.now() }, { merge: true });
-            } catch (e) {
-                console.error("Push Failed:", e);
-            }
-        };
+                    <!-- Calculator Results -->
+                    <div class="lg:col-span-7 space-y-6">
+                        <!-- Gross Saving -->
+                        <div class="bg-slate-800 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
+                            <i class="fa-solid fa-leaf absolute -right-6 -bottom-6 text-9xl text-slate-700 opacity-30"></i>
+                            <h4 class="text-slate-400 text-sm font-medium mb-1">Total Rupiah yang Dihemat (Bulan)</h4>
+                            <div class="text-4xl font-extrabold text-emerald-400 font-mono tracking-tight" id="res-total-saving">Rp 4.000.000</div>
+                        </div>
 
-        // 6. UI Interaction Handlers
-        document.getElementById('btn-remote-toggle').onclick = () => {
-            modal.classList.remove('hidden');
-            // If laptop, start listening for instructions immediately
-            if (sessionId && !isRemoteMode) bindToSession(sessionId);
-        };
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Client Benefit -->
+                            <div class="glass-card bg-white rounded-2xl p-6 border border-slate-200 shadow-md">
+                                <h4 class="text-slate-500 text-sm font-medium mb-2 flex items-center gap-2"><i class="fa-solid fa-user-tie text-slate-400"></i> Keuntungan Klien</h4>
+                                <div class="text-2xl font-bold text-slate-800 font-mono" id="res-client-profit">Rp 1.200.000</div>
+                                <p class="text-xs text-slate-500 mt-2">Diterima klien setiap bulan <br/>tanpa mengeluarkan modal alat.</p>
+                            </div>
 
-        document.getElementById('btn-close-remote').onclick = () => modal.classList.add('hidden');
+                            <!-- Investor Revenue -->
+                            <div class="glass-card bg-brand-light rounded-2xl p-6 border border-brand-primary/30 shadow-md relative">
+                                <div class="absolute top-0 right-0 bg-brand-primary text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg rounded-tr-xl uppercase tracking-wider">Revenue Konsorsium</div>
+                                <h4 class="text-brand-primary text-sm font-medium mb-2 flex items-center gap-2"><i class="fa-solid fa-money-bill-trend-up"></i> Pembayaran ke Kalimaja</h4>
+                                <div class="text-2xl font-bold text-brand-dark font-mono" id="res-investor-revenue">Rp 2.800.000</div>
+                                <p class="text-xs text-slate-600 mt-2">Nilai ini yang ditagihkan ke klien, lalu dibagikan ke PT dan Dividen Investor Anda.</p>
+                            </div>
+                        </div>
 
-        document.getElementById('btn-switch-to-remote').onclick = () => {
-            setupPanel.classList.add('hidden');
-            inputPanel.classList.remove('hidden');
-        };
+                        <!-- BEP Info -->
+                        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-4">
+                            <i class="fa-solid fa-info-circle text-blue-500 text-xl mt-0.5"></i>
+                            <div>
+                                <h4 class="font-bold text-blue-900 text-sm">Waktu Pengembalian Modal (BEP)</h4>
+                                <p class="text-blue-800 text-xs mt-1">Berdasarkan data historis 500+ klien, BEP rata-rata alat Xtron tercapai dalam <strong>3 hingga 4 Bulan</strong>. Sisa durasi kontrak (12-36 bulan) adalah <i>Pure Net Profit</i>.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-        document.getElementById('btn-do-connect').onclick = () => {
-            const val = codeInput.value.trim();
-            if (val.length === 4) {
-                sessionId = val;
-                isRemoteMode = true;
-                inputPanel.classList.add('hidden');
-                controlPanel.classList.remove('hidden');
-                // HP starts its own logic but updates its view state
-                bindToSession(sessionId);
-            }
-        };
+            <!-- TAB: MARKET -->
+            <section id="market" class="tab-content">
+                <div class="mb-10 border-b border-slate-200 pb-6">
+                    <h2 class="text-3xl font-bold text-brand-dark mb-2">Target Pasar Masif</h2>
+                    <p class="text-slate-600">Akseptasi pasar terbukti pada lebih dari 500+ klien B2B (Business to Business).</p>
+                </div>
 
-        document.getElementById('remote-move-next').onclick = () => {
-            if (currentSlideIndex < slides.length - 1) {
-                currentSlideIndex++;
-                pushUpdateToServer(currentSlideIndex);
-            }
-        };
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Market Cards -->
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-lg transition-shadow">
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fa-solid fa-hotel text-blue-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-bold text-lg mb-1">Hotel & Apartemen</h3>
+                        <p class="text-brand-primary font-bold text-sm mb-3">Hemat 40-50%</p>
+                        <p class="text-sm text-slate-600">Operasional 24 jam nonstop. Memberikan ROI dan kecepatan modal kembali paling cepat.</p>
+                    </div>
 
-        document.getElementById('remote-move-prev').onclick = () => {
-            if (currentSlideIndex > 0) {
-                currentSlideIndex--;
-                pushUpdateToServer(currentSlideIndex);
-            }
-        };
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-lg transition-shadow">
+                        <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fa-solid fa-industry text-orange-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-bold text-lg mb-1">Pabrik & Manufaktur</h3>
+                        <p class="text-brand-primary font-bold text-sm mb-3">Hemat 35-50%</p>
+                        <p class="text-sm text-slate-600">Kapasitas pendingin besar, efisiensi skala makro untuk cold storage & area produksi.</p>
+                    </div>
 
-        // 7. Scroll Tracker (Keeps currentSlideIndex in sync with dots)
-        window.onscroll = () => {
-            let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-            let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            let scrolled = (winScroll / height) * 100;
-            document.getElementById("progress").style.width = scrolled + "%";
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-lg transition-shadow">
+                        <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fa-solid fa-hospital text-red-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-bold text-lg mb-1">Fasilitas Medis / RS</h3>
+                        <p class="text-brand-primary font-bold text-sm mb-3">Hemat 35-45%</p>
+                        <p class="text-sm text-slate-600">Beban listrik konstan, teknologi aman tidak mengintervensi atau merusak alat-alat medis.</p>
+                    </div>
 
-            const sections = document.querySelectorAll('section');
-            const dots = document.querySelectorAll('.dot');
-            let currentId = "";
-            sections.forEach((sec, i) => {
-                if (window.pageYOffset >= sec.offsetTop - 300) {
-                    currentId = sec.getAttribute('id');
-                    currentSlideIndex = i;
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-lg transition-shadow">
+                        <div class="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fa-solid fa-city text-slate-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-bold text-lg mb-1">Gedung Perkantoran</h3>
+                        <p class="text-brand-primary font-bold text-sm mb-3">Hemat 30-40%</p>
+                        <p class="text-sm text-slate-600">Operasional 8-10 jam/hari. Merupakan kolam target market terbesar dan terbanyak di kota besar.</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-lg transition-shadow">
+                        <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fa-solid fa-store text-emerald-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-bold text-lg mb-1">Retail & F&B</h3>
+                        <p class="text-brand-primary font-bold text-sm mb-3">Hemat 30-40%</p>
+                        <p class="text-sm text-slate-600">Cocok untuk sistem franchise / minimarket dengan puluhan cabang, efisiensi tersentralisasi.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: TIERS -->
+            <section id="tiers" class="tab-content">
+                <div class="mb-10 text-center">
+                    <h2 class="text-3xl font-bold text-brand-dark mb-2">Pilihan Tier Investasi</h2>
+                    <p class="text-slate-600 max-w-2xl mx-auto">Pendanaan ini murni dialokasikan untuk CAPEX alat Xtron yang akan dipasang di lokasi proyek. Estimasi IRR rata-rata berada di angka <strong>Himbara + 10%</strong>.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Tier D -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-lg p-6 relative flex flex-col hover:-translate-y-1 transition-transform">
+                        <div class="text-center border-b border-slate-100 pb-4 mb-4">
+                            <h3 class="text-slate-400 font-bold uppercase tracking-wider text-sm mb-1">TIER D</h3>
+                            <div class="text-2xl font-bold text-slate-800 font-mono">Rp 14.250.000</div>
+                        </div>
+                        <ul class="text-sm text-slate-600 space-y-3 flex-1">
+                            <li><i class="fa-solid fa-check text-brand-primary mr-2"></i>Akses Portal Dasar</li>
+                            <li><i class="fa-solid fa-check text-brand-primary mr-2"></i>Laporan Bulanan</li>
+                            <li><i class="fa-solid fa-check text-brand-primary mr-2"></i>Roll-over Proyek</li>
+                        </ul>
+                    </div>
+
+                    <!-- Tier C -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-lg p-6 relative flex flex-col hover:-translate-y-1 transition-transform">
+                        <div class="text-center border-b border-slate-100 pb-4 mb-4">
+                            <h3 class="text-slate-400 font-bold uppercase tracking-wider text-sm mb-1">TIER C</h3>
+                            <div class="text-2xl font-bold text-slate-800 font-mono">Rp 15.750.000</div>
+                        </div>
+                        <ul class="text-sm text-slate-600 space-y-3 flex-1">
+                            <li><i class="fa-solid fa-check text-brand-primary mr-2"></i>Semua fitur Tier D</li>
+                            <li><i class="fa-solid fa-check text-brand-primary mr-2"></i>Prioritas Alokasi Klien</li>
+                        </ul>
+                    </div>
+
+                    <!-- Tier B -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-lg p-6 relative flex flex-col hover:-translate-y-1 transition-transform">
+                        <div class="text-center border-b border-slate-100 pb-4 mb-4">
+                            <h3 class="text-slate-400 font-bold uppercase tracking-wider text-sm mb-1">TIER B</h3>
+                            <div class="text-2xl font-bold text-slate-800 font-mono">Rp 22.250.000</div>
+                        </div>
+                        <ul class="text-sm text-slate-600 space-y-3 flex-1">
+                            <li><i class="fa-solid fa-check text-brand-primary mr-2"></i>Semua fitur Tier C</li>
+                            <li><i class="fa-solid fa-check text-brand-primary mr-2"></i>Real-time Data Access</li>
+                        </ul>
+                    </div>
+
+                    <!-- Tier A (Featured) -->
+                    <div class="bg-brand-dark rounded-2xl border border-slate-600 shadow-2xl p-6 relative flex flex-col transform scale-105 z-10">
+                        <div class="absolute -top-3 inset-x-0 flex justify-center">
+                            <span class="bg-brand-primary text-white text-xs font-bold px-3 py-1 rounded-full uppercase">Paling Direkomendasikan</span>
+                        </div>
+                        <div class="text-center border-b border-slate-700 pb-4 mb-4 mt-2">
+                            <h3 class="text-emerald-400 font-bold uppercase tracking-wider text-sm mb-1">TIER A</h3>
+                            <div class="text-2xl font-bold text-white font-mono">Rp 28.500.000</div>
+                        </div>
+                        <ul class="text-sm text-slate-300 space-y-3 flex-1">
+                            <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i>Semua fitur Tier B</li>
+                            <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i>Full Cloud Dashboard</li>
+                            <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i>Premium Priority Support</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: PORTAL & TRANSPARENCY -->
+            <section id="portal" class="tab-content">
+                <div class="mb-10 border-b border-slate-200 pb-6">
+                    <h2 class="text-3xl font-bold text-brand-dark mb-2">Transparansi Mutlak (Portal Cloud)</h2>
+                    <p class="text-slate-600">Anda tidak menaruh uang dalam kegelapan. Akses eksklusif di <span class="font-mono text-brand-accent bg-blue-50 px-2 py-0.5 rounded">ksasemesta.it.com</span></p>
+                </div>
+
+                <div class="bg-slate-900 rounded-3xl overflow-hidden shadow-2xl flex flex-col lg:flex-row">
+                    <!-- Dashboard Mockup -->
+                    <div class="lg:w-1/2 p-6 bg-slate-800 border-r border-slate-700 relative">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="text-white font-bold"><i class="fa-solid fa-cloud text-brand-primary mr-2"></i> Kalimaja Portal</div>
+                            <div class="text-xs text-slate-400">Shareholder View</div>
+                        </div>
+                        <!-- UI Elements Mockup -->
+                        <div class="space-y-4">
+                            <div class="bg-slate-700 rounded-lg p-4">
+                                <div class="text-xs text-slate-400">Dividen Anda (Bulan Ini)</div>
+                                <div class="text-2xl text-emerald-400 font-mono font-bold">Rp 3.450.000</div>
+                            </div>
+                            <div class="bg-slate-700 rounded-lg p-4">
+                                <div class="text-xs text-slate-400 mb-2">Proyek Aktif (Live Monitor)</div>
+                                <div class="flex justify-between items-center text-sm text-white border-b border-slate-600 pb-2 mb-2">
+                                    <span>Hotel Grand Aston</span>
+                                    <span class="text-emerald-400">Active</span>
+                                </div>
+                                <div class="flex justify-between items-center text-sm text-white">
+                                    <span>Pabrik Tekstil Jaya</span>
+                                    <span class="text-emerald-400">Active</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- decorative gradient -->
+                        <div class="absolute bottom-0 right-0 w-32 h-32 bg-brand-primary blur-[80px] opacity-30"></div>
+                    </div>
+                    
+                    <!-- Features -->
+                    <div class="lg:w-1/2 p-8 lg:p-10 text-white flex flex-col justify-center">
+                        <ul class="space-y-6">
+                            <li class="flex items-start gap-4">
+                                <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-list-check text-brand-primary"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg">Daftar Portofolio Proyek</h4>
+                                    <p class="text-sm text-slate-400 mt-1">Melihat secara detail di gedung atau perusahaan mana alat Xtron Anda terpasang.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-4">
+                                <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-chart-line text-brand-primary"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg">Performance Monitor</h4>
+                                    <p class="text-sm text-slate-400 mt-1">Pantau langsung kWh aktual vs estimasi normal, serta pencapaian Real Saving murni per bulan.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-4">
+                                <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-shield-cat text-brand-primary"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg">Keamanan Deposit</h4>
+                                    <p class="text-sm text-slate-400 mt-1">Sisa deposit yang belum masuk proyek dapat dikembalikan setelah 45 hari atau di-roll over.</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- ESG Section -->
+                <div class="mt-12 bg-white rounded-2xl p-8 border border-emerald-100 shadow-sm">
+                    <h3 class="text-xl font-bold text-brand-dark mb-6 text-center">Nilai Tambah Investasi: <span class="text-emerald-600">E S G</span></h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                        <div>
+                            <i class="fa-solid fa-leaf text-3xl text-emerald-500 mb-3"></i>
+                            <h4 class="font-bold mb-2">Environmental</h4>
+                            <p class="text-xs text-slate-600">Mendukung <i>Net Zero Emission</i> dengan memangkas jejak karbon dari konsumsi listrik besar.</p>
+                        </div>
+                        <div>
+                            <i class="fa-solid fa-users text-3xl text-blue-500 mb-3"></i>
+                            <h4 class="font-bold mb-2">Social</h4>
+                            <p class="text-xs text-slate-600">Memberdayakan teknisi lokal dan menciptakan kenyamanan suhu ruang kerja karyawan.</p>
+                        </div>
+                        <div>
+                            <i class="fa-solid fa-scale-balanced text-3xl text-slate-700 mb-3"></i>
+                            <h4 class="font-bold mb-2">Governance</h4>
+                            <p class="text-xs text-slate-600">Tata kelola keuangan 100% transparan, dapat diaudit via database cloud terpusat.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bottom Call to Action (Visible on all tabs) -->
+            <div class="mt-12 bg-gradient-to-r from-brand-dark to-slate-800 rounded-2xl p-8 text-white shadow-xl flex flex-col md:flex-row items-center justify-between">
+                <div class="mb-6 md:mb-0">
+                    <h3 class="text-2xl font-bold mb-2">Siap Bergabung sebagai Investor?</h3>
+                    <p class="text-slate-300 text-sm max-w-lg">Bisnis efisiensi energi adalah bisnis tahan krisis (resilient). Selama industri butuh AC, <i>recurring income</i> Anda terus mengalir.</p>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="https://wa.me/6285111033789" target="_blank" class="bg-brand-primary hover:bg-emerald-500 transition-colors text-white font-bold py-3 px-6 rounded-lg shadow-lg flex items-center justify-center gap-2">
+                        <i class="fa-brands fa-whatsapp text-xl"></i> Hubungi Manajemen
+                    </a>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="mt-12 text-center text-slate-400 text-sm pb-8 border-t border-slate-200 pt-6">
+                <p>&copy; 2026 PT KALIMAJA SURYA ALAM. All rights reserved.</p>
+                <p class="mt-1">kalimaja.com | ksasemesta.it.com</p>
+            </footer>
+
+        </div>
+    </main>
+
+    <!-- Modal QR Code untuk Koneksi Laptop -->
+    <div id="qrModal" class="hidden fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-sm w-full text-center relative">
+            <button onclick="closeQRModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h3 class="text-xl font-bold mb-2">Kendali Jarak Jauh 📱</h3>
+            <p class="text-sm text-slate-600 mb-4">Hubungkan HP Anda ke presentasi ini.</p>
+            
+            <div id="qrcode" class="flex justify-center mb-4 p-4 bg-white border-2 border-slate-100 rounded-xl min-h-[220px] items-center">
+                <!-- QR Code otomatis masuk sini -->
+            </div>
+
+            <!-- Bagian PIN untuk Manual Connect (Bisa Offline) -->
+            <div class="mt-4 pt-4 border-t border-slate-200">
+                <p class="text-xs text-slate-500 mb-2">Atau masukkan PIN ini di menu "Input PIN Remote" pada HP Anda:</p>
+                <div class="text-3xl font-mono font-bold tracking-widest text-brand-primary bg-slate-50 py-2 rounded-lg border border-slate-200 inline-block px-6" id="session-pin">
+                    ----
+                </div>
+            </div>
+
+            <p class="text-sm font-medium text-slate-500 mt-4" id="connection-status"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Menunggu koneksi HP...</p>
+        </div>
+    </div>
+
+    <!-- UI Remote Control (Hanya tampil di Layar HP setelah discan/masukin PIN) -->
+    <div id="remoteUI" class="hidden fixed inset-0 bg-brand-dark z-[100] flex-col p-6 text-white overflow-hidden">
+        <div class="text-center mb-8 pt-8">
+            <i class="fa-solid fa-bolt text-brand-primary text-5xl mb-4"></i>
+            <h1 class="text-3xl font-bold tracking-wider">XTRON Remote</h1>
+            <p class="text-sm text-slate-400 mt-2" id="remote-status"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Menghubungkan ke Laptop...</p>
+        </div>
+        <div class="grid grid-cols-2 gap-4 flex-1 content-start max-w-md mx-auto w-full">
+            <button onclick="sendRemoteCmd('summary')" class="bg-slate-800 py-8 rounded-2xl active:bg-brand-primary active:scale-95 transition-all flex flex-col items-center gap-3 border border-slate-700 shadow-lg">
+                <i class="fa-solid fa-chart-pie text-3xl"></i><span class="font-bold">Peluang</span>
+            </button>
+            <button onclick="sendRemoteCmd('solution')" class="bg-slate-800 py-8 rounded-2xl active:bg-brand-primary active:scale-95 transition-all flex flex-col items-center gap-3 border border-slate-700 shadow-lg">
+                <i class="fa-solid fa-microchip text-3xl"></i><span class="font-bold">Solusi</span>
+            </button>
+            <button onclick="sendRemoteCmd('simulation')" class="bg-slate-800 py-8 rounded-2xl active:bg-brand-primary active:scale-95 transition-all flex flex-col items-center gap-3 border border-slate-700 shadow-lg">
+                <i class="fa-solid fa-calculator text-3xl"></i><span class="font-bold">Simulasi</span>
+            </button>
+            <button onclick="sendRemoteCmd('market')" class="bg-slate-800 py-8 rounded-2xl active:bg-brand-primary active:scale-95 transition-all flex flex-col items-center gap-3 border border-slate-700 shadow-lg">
+                <i class="fa-solid fa-building text-3xl"></i><span class="font-bold">Pasar</span>
+            </button>
+            <button onclick="sendRemoteCmd('tiers')" class="bg-slate-800 py-8 rounded-2xl active:bg-brand-primary active:scale-95 transition-all flex flex-col items-center gap-3 border border-slate-700 shadow-lg">
+                <i class="fa-solid fa-layer-group text-3xl"></i><span class="font-bold">Tier</span>
+            </button>
+            <button onclick="sendRemoteCmd('portal')" class="bg-slate-800 py-8 rounded-2xl active:bg-brand-primary active:scale-95 transition-all flex flex-col items-center gap-3 border border-slate-700 shadow-lg">
+                <i class="fa-solid fa-shield-halved text-3xl"></i><span class="font-bold">Portal</span>
+            </button>
+        </div>
+        <div class="mt-auto text-center pb-4 text-xs text-slate-500">
+            Pastikan layar HP tetap menyala saat presentasi.
+        </div>
+    </div>
+
+    <script>
+        // Tab Navigation Logic
+        function openTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-brand-primary', 'text-white');
+                btn.classList.add('text-slate-300');
+                if(btn.dataset.target === tabId) {
+                    btn.classList.remove('text-slate-300');
+                    btn.classList.add('bg-brand-primary', 'text-white');
                 }
             });
-            dots.forEach(d => {
-                d.classList.remove('active');
-                if (d.getAttribute('href') === `#${currentId}`) d.classList.add('active');
-            });
-        };
-
-        // 8. Global Handlers for Non-Module Access
-        window.handleFilePreview = (input, vId, iId, persist = false) => {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    document.getElementById(iId).src = e.target.result;
-                    document.getElementById(vId).classList.remove('hidden');
-                    if (vId === 'diag-display-box') document.getElementById('diag-upload-box').classList.add('hidden');
-                    if (persist) localStorage.setItem('airtron_saved_diag', e.target.result);
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
-        };
-
-        window.handleFileClear = (iId, vId, persist = false) => {
-            document.getElementById(iId).value = "";
-            document.getElementById(vId).classList.add('hidden');
-            if (vId === 'diag-display-box') document.getElementById('diag-upload-box').classList.remove('hidden');
-            if (persist) localStorage.removeItem('airtron_saved_diag');
-        };
-
-        // Initialize persistent diagrams
-        const saved = localStorage.getItem('airtron_saved_diag');
-        if (saved) {
-            document.getElementById('img-display-diag').src = saved;
-            document.getElementById('diag-display-box').classList.remove('hidden');
-            document.getElementById('diag-upload-box').classList.add('hidden');
+            document.querySelector('main').scrollTo({top: 0, behavior: 'smooth'});
         }
 
-        // Smooth Dots Navigation
-        document.querySelectorAll('.dot, a[href^="#"]').forEach(a => {
-            a.onclick = (e) => {
-                const target = document.querySelector(a.getAttribute('href'));
-                if (target) {
-                    e.preventDefault();
-                    target.scrollIntoView({ behavior: 'smooth' });
+        // Calculator Logic
+        function formatCurrency(number) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+        }
+        function calculateROI() {
+            const bill = parseFloat(document.getElementById('calc-bill').value) || 0;
+            const savingPercent = parseFloat(document.getElementById('calc-saving').value) / 100;
+            const clientSharePercent = parseFloat(document.getElementById('calc-client-share').value) / 100;
+            const investorSharePercent = 1 - clientSharePercent;
+            document.getElementById('investor-share-val').innerText = (investorSharePercent * 100).toFixed(0) + '%';
+            
+            const totalSaving = bill * savingPercent;
+            document.getElementById('res-total-saving').innerText = formatCurrency(totalSaving);
+            document.getElementById('res-client-profit').innerText = formatCurrency(totalSaving * clientSharePercent);
+            document.getElementById('res-investor-revenue').innerText = formatCurrency(totalSaving * investorSharePercent);
+        }
+        calculateROI();
+
+        // ==========================================
+        // SISTEM REMOTE CONTROL P2P (SMART & OFFLINE-READY)
+        // ==========================================
+        const urlParams = new URLSearchParams(window.location.search);
+        const isRemote = urlParams.get('remote') === 'true';
+        const hostIdParam = urlParams.get('hostId');
+
+        let peer = null;
+        let conn = null;
+        
+        // Bikin PIN statis pendek untuk sesi laptop ini (4 digit)
+        const myShortPin = Math.floor(1000 + Math.random() * 9000).toString();
+        const myHostId = 'xtron-' + myShortPin;
+
+        if (isRemote) {
+            // ---> MODE HP
+            document.querySelector('aside').style.display = 'none';
+            document.querySelector('main').style.display = 'none';
+            document.getElementById('remoteUI').classList.remove('hidden');
+            document.getElementById('remoteUI').classList.add('flex');
+            
+            peer = new Peer(); 
+            peer.on('open', function() {
+                conn = peer.connect(hostIdParam);
+                conn.on('open', () => {
+                    document.getElementById('remote-status').innerHTML = "✅ <span class='text-emerald-400 font-bold'>Terhubung! Silakan kontrol layar.</span>";
+                });
+                conn.on('close', () => {
+                    document.getElementById('remote-status').innerHTML = "❌ <span class='text-red-400'>Koneksi terputus dari laptop.</span>";
+                });
+            });
+            peer.on('error', () => {
+                document.getElementById('remote-status').innerHTML = "❌ <span class='text-red-400'>Gagal terhubung. Cek koneksi / PIN salah.</span>";
+            });
+
+            window.sendRemoteCmd = function(tabId) {
+                if (conn && conn.open) {
+                    conn.send({ command: tabId });
+                    if ('vibrate' in navigator) navigator.vibrate(50);
+                } else {
+                    alert("Belum terhubung ke laptop.");
                 }
-            };
-        });
+            }
+
+        } else {
+            // ---> MODE LAPTOP
+            peer = new Peer(myHostId); // Pakai ID spesifik (XTRON-XXXX)
+
+            peer.on('connection', function(connection) {
+                document.getElementById('connection-status').innerHTML = "<span class='text-emerald-600 font-bold text-lg'>✅ HP Terhubung! Menutup popup...</span>";
+                setTimeout(closeQRModal, 1500);
+
+                connection.on('data', function(data) {
+                    if (data.command) openTab(data.command);
+                });
+            });
+
+            window.openQRModal = function() {
+                document.getElementById('qrModal').classList.remove('hidden');
+                document.getElementById('qrcode').innerHTML = ''; 
+                document.getElementById('connection-status').innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menunggu koneksi HP...';
+                document.getElementById('session-pin').innerText = myShortPin;
+
+                // Cek apakah URL bersifat Offline/Lokal (file://, blob:, about:)
+                const baseUrl = window.location.href.split('?')[0]; 
+                const isLocal = baseUrl.startsWith('file:') || baseUrl.startsWith('blob:') || baseUrl.startsWith('about:');
+
+                if (isLocal) {
+                    // Tampilkan panduan jika belum dihosting
+                    document.getElementById('qrcode').innerHTML = `
+                        <div class="text-center p-3 bg-amber-50 rounded-xl border border-amber-200 w-full max-w-[220px]">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-500 text-3xl mb-2"></i>
+                            <p class="text-[11px] font-bold text-amber-900 mb-1 leading-tight">File masih "Offline"</p>
+                            <p class="text-[10px] text-amber-800 mb-2 leading-tight">Kamera HP tidak bisa scan file lokal laptop.</p>
+                            <div class="text-[10px] text-left bg-white p-2 rounded border border-amber-100 font-medium">
+                                <b>Solusi 1 Menit:</b><br/>
+                                1. Buka <b>tiiny.host</b><br/>
+                                2. Upload file HTML ini<br/>
+                                3. Buka link webnya<br/>
+                                Maka QR Code akan muncul!
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // Jika URL Publik (Online), Generate QR secara Normal
+                    const remoteUrl = baseUrl + '?remote=true&hostId=' + myHostId;
+                    new QRCode(document.getElementById("qrcode"), {
+                        text: remoteUrl,
+                        width: 200,
+                        height: 200,
+                        colorDark : "#0f172a",
+                        colorLight : "#ffffff",
+                        correctLevel : QRCode.CorrectLevel.H
+                    });
+                }
+            }
+
+            window.closeQRModal = function() {
+                document.getElementById('qrModal').classList.add('hidden');
+            }
+
+            // Fungsi untuk HP masuk mode Remote secara manual pakai PIN
+            window.enterManualRemote = function() {
+                const pin = prompt("Jika Anda membuka file ini di HP, masukkan 4 digit PIN yang tampil di layar Laptop:");
+                if (pin && pin.trim().length === 4) {
+                    const baseUrl = window.location.href.split('?')[0];
+                    window.location.href = baseUrl + '?remote=true&hostId=xtron-' + pin.trim();
+                } else if (pin) {
+                    alert("PIN harus 4 digit angka!");
+                }
+            }
+        }
     </script>
 </body>
 </html>
