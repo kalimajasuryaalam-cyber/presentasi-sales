@@ -6,7 +6,7 @@
     <title>Xtron Investor Pitch App</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Tambahan Library untuk Remote Control via WebRTC & QR Code -->
+    <!-- Library untuk Remote Control via WebRTC & QR Code -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
@@ -94,7 +94,7 @@
     </aside>
 
     <!-- Main Content Area -->
-    <main class="flex-1 h-full overflow-y-auto bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-slate-50 relative">
+    <main class="flex-1 h-full overflow-y-auto bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-slate-50 relative pb-24 md:pb-0">
         <div class="absolute inset-0 bg-gradient-to-br from-slate-50/90 to-slate-200/90 z-0"></div>
         
         <div class="relative z-10 max-w-5xl mx-auto p-6 md:p-10">
@@ -549,13 +549,15 @@
         </div>
     </div>
 
-    <!-- Tombol Melayang untuk Kembali ke Menu Remote (Hanya di HP) -->
+    <!-- Tombol Melayang untuk Kembali ke Menu Remote (Hanya di HP saat mode Teleprompter) -->
     <button id="backToRemoteBtn" onclick="showRemoteMenu()" class="hidden fixed bottom-8 left-1/2 -translate-x-1/2 bg-brand-dark text-white font-bold py-4 px-8 rounded-full shadow-[0_10px_40px_rgba(5,150,105,0.4)] z-[200] border border-emerald-500 flex items-center justify-center gap-3 active:scale-95 transition-transform w-[85%] max-w-sm">
         <i class="fa-solid fa-xmark text-emerald-400 text-2xl"></i> Tutup & Kembali
     </button>
 
     <script>
-        // Tab Navigation Logic
+        // ==========================================
+        // TAB & UI LOGIC
+        // ==========================================
         function openTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
@@ -571,10 +573,10 @@
             document.querySelector('main').scrollTo({top: 0, behavior: 'smooth'});
         }
 
-        // Calculator Logic
         function formatCurrency(number) {
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
         }
+        
         function calculateROI() {
             const bill = parseFloat(document.getElementById('calc-bill').value) || 0;
             const savingPercent = parseFloat(document.getElementById('calc-saving').value) / 100;
@@ -587,34 +589,44 @@
             document.getElementById('res-client-profit').innerText = formatCurrency(totalSaving * clientSharePercent);
             document.getElementById('res-investor-revenue').innerText = formatCurrency(totalSaving * investorSharePercent);
         }
-        calculateROI();
+        calculateROI(); // Init kalkulator
 
         // ==========================================
-        // SISTEM REMOTE CONTROL P2P (SMART & OFFLINE-READY)
+        // SISTEM REMOTE CONTROL P2P (FULL FIX + STUN + TELEPROMPTER)
         // ==========================================
         const urlParams = new URLSearchParams(window.location.search);
         const isRemote = urlParams.get('remote') === 'true';
         const hostIdParam = urlParams.get('hostId');
 
+        // STUN Server Google untuk menembus Firewall/NAT pada GitHub Pages/Provider Seluler
+        const peerConfig = {
+            config: {
+                'iceServers': [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' }
+                ]
+            }
+        };
+
         let peer = null;
-        // PENTING: Simpan koneksi di variable window (global) agar tidak dihapus otomatis oleh browser (Garbage Collection)
-        window.activeConn = null; 
+        window.activeConn = null; // Menjaga koneksi agar tidak di garbage collection
         
-        // Bikin PIN statis pendek untuk sesi laptop ini (4 digit)
         const myShortPin = Math.floor(1000 + Math.random() * 9000).toString();
         const myHostId = 'xtron-' + myShortPin;
 
         if (isRemote) {
-            // ---> MODE HP
+            // ==========================================
+            // ---> MODE HP (REMOTE)
+            // ==========================================
             document.querySelector('aside').style.display = 'none';
             document.querySelector('main').style.display = 'none';
             document.getElementById('remoteUI').classList.remove('hidden');
             document.getElementById('remoteUI').classList.add('flex');
             
-            peer = new Peer(); 
+            peer = new Peer(peerConfig); 
             peer.on('open', function() {
-                // Gunakan mode reliable: true agar data pasti terkirim ke Laptop
-                window.activeConn = peer.connect(hostIdParam, { reliable: true });
+                // Koneksi standar tanpa parameter reliable agar lolos di Safari/iPhone
+                window.activeConn = peer.connect(hostIdParam);
                 
                 window.activeConn.on('open', () => {
                     document.getElementById('remote-status').innerHTML = "✅ <span class='text-emerald-400 font-bold'>Terhubung! Silakan kontrol layar.</span>";
@@ -632,54 +644,60 @@
 
             window.sendRemoteCmd = function(tabId) {
                 if (window.activeConn && window.activeConn.open) {
-                    // 1. Kirim perintah ke Laptop secara pasti (Reliable Mode)
-                    window.activeConn.send({ command: tabId });
+                    // Mengirim format String Murni (Anti-Gagal)
+                    window.activeConn.send("TAB_" + tabId);
+                    
                     if ('vibrate' in navigator) navigator.vibrate(50);
 
-                    // 2. Tampilkan Konten Presentasi di HP
+                    // Transisi ke mode Teleprompter di HP
                     document.getElementById('remoteUI').classList.add('hidden');
                     document.getElementById('remoteUI').classList.remove('flex');
                     document.querySelector('main').style.display = 'block';
                     document.getElementById('backToRemoteBtn').classList.remove('hidden');
                     document.getElementById('backToRemoteBtn').classList.add('flex');
                     
-                    // 3. Buka tab yang dipilih secara lokal di HP
+                    // Buka tab lokal di HP
                     openTab(tabId);
                 } else {
-                    alert("Koneksi belum stabil atau terputus. Tunggu sebentar atau muat ulang (refresh) halaman HP Anda.");
+                    alert("Koneksi belum stabil atau terputus. Tunggu sebentar atau refresh halaman HP Anda.");
                 }
             }
 
-            // Fungsi baru: Menutup layar presentasi di HP dan kembali ke menu icon
+            // Fungsi tombol melayang di HP
             window.showRemoteMenu = function() {
-                // Sembunyikan konten & tombol tutup
                 document.querySelector('main').style.display = 'none';
                 document.getElementById('backToRemoteBtn').classList.add('hidden');
                 document.getElementById('backToRemoteBtn').classList.remove('flex');
                 
-                // Tampilkan kembali menu icon remote
                 document.getElementById('remoteUI').classList.remove('hidden');
                 document.getElementById('remoteUI').classList.add('flex');
             }
 
         } else {
-            // ---> MODE LAPTOP
-            peer = new Peer(myHostId); // Pakai ID spesifik (XTRON-XXXX)
+            // ==========================================
+            // ---> MODE LAPTOP (HOST)
+            // ==========================================
+            peer = new Peer(myHostId, peerConfig); 
 
             peer.on('connection', function(connection) {
-                window.activeConn = connection; // Cegah koneksi mati karena idle (Garbage Collection)
+                window.activeConn = connection; 
 
-                // Pastikan menunggu event 'open' dari sisi penerima sebelum siap mendengarkan data
                 connection.on('open', function() {
                     document.getElementById('connection-status').innerHTML = "<span class='text-emerald-600 font-bold text-lg'>✅ HP Terhubung! Menutup popup...</span>";
                     setTimeout(closeQRModal, 1500);
                 });
 
-                // Dengarkan data (perintah klik) yang masuk dari HP
                 connection.on('data', function(data) {
-                    console.log("Menerima perintah dari HP:", data); // Debugging
-                    if (data && data.command) {
-                        openTab(data.command); // Pindahkan layar laptop!
+                    console.log("Menerima perintah dari HP:", data); 
+                    
+                    // Filter penerimaan format String
+                    if (typeof data === 'string' && data.startsWith("TAB_")) {
+                        const targetTab = data.replace("TAB_", "");
+                        openTab(targetTab); 
+                    } 
+                    // Fallback jika sistem lama tersimpan di cache
+                    else if (data && data.command) {
+                        openTab(data.command); 
                     }
                 });
             });
@@ -690,35 +708,18 @@
                 document.getElementById('connection-status').innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menunggu koneksi HP...';
                 document.getElementById('session-pin').innerText = myShortPin;
 
+                // QR Code Generator
                 const baseUrl = window.location.href.split('?')[0]; 
-                const isLocal = baseUrl.startsWith('file:') || baseUrl.startsWith('blob:') || baseUrl.startsWith('about:');
-
-                if (isLocal) {
-                    document.getElementById('qrcode').innerHTML = `
-                        <div class="text-center p-3 bg-amber-50 rounded-xl border border-amber-200 w-full max-w-[220px]">
-                            <i class="fa-solid fa-triangle-exclamation text-amber-500 text-3xl mb-2"></i>
-                            <p class="text-[11px] font-bold text-amber-900 mb-1 leading-tight">File masih "Offline"</p>
-                            <p class="text-[10px] text-amber-800 mb-2 leading-tight">Kamera HP tidak bisa scan file lokal laptop.</p>
-                            <div class="text-[10px] text-left bg-white p-2 rounded border border-amber-100 font-medium">
-                                <b>Solusi 1 Menit:</b><br/>
-                                1. Buka <b>tiiny.host</b><br/>
-                                2. Upload file HTML ini<br/>
-                                3. Buka link webnya<br/>
-                                Maka QR Code akan muncul!
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    const remoteUrl = baseUrl + '?remote=true&hostId=' + myHostId;
-                    new QRCode(document.getElementById("qrcode"), {
-                        text: remoteUrl,
-                        width: 200,
-                        height: 200,
-                        colorDark : "#0f172a",
-                        colorLight : "#ffffff",
-                        correctLevel : QRCode.CorrectLevel.H
-                    });
-                }
+                const remoteUrl = baseUrl + '?remote=true&hostId=' + myHostId;
+                
+                new QRCode(document.getElementById("qrcode"), {
+                    text: remoteUrl,
+                    width: 200,
+                    height: 200,
+                    colorDark : "#0f172a",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
             }
 
             window.closeQRModal = function() {
