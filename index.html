@@ -597,7 +597,8 @@
         const hostIdParam = urlParams.get('hostId');
 
         let peer = null;
-        let conn = null;
+        // PENTING: Simpan koneksi di variable window (global) agar tidak dihapus otomatis oleh browser (Garbage Collection)
+        window.activeConn = null; 
         
         // Bikin PIN statis pendek untuk sesi laptop ini (4 digit)
         const myShortPin = Math.floor(1000 + Math.random() * 9000).toString();
@@ -612,22 +613,27 @@
             
             peer = new Peer(); 
             peer.on('open', function() {
-                conn = peer.connect(hostIdParam);
-                conn.on('open', () => {
+                // Gunakan mode reliable: true agar data pasti terkirim ke Laptop
+                window.activeConn = peer.connect(hostIdParam, { reliable: true });
+                
+                window.activeConn.on('open', () => {
                     document.getElementById('remote-status').innerHTML = "✅ <span class='text-emerald-400 font-bold'>Terhubung! Silakan kontrol layar.</span>";
                 });
-                conn.on('close', () => {
+                
+                window.activeConn.on('close', () => {
                     document.getElementById('remote-status').innerHTML = "❌ <span class='text-red-400'>Koneksi terputus dari laptop.</span>";
                 });
             });
-            peer.on('error', () => {
+            
+            peer.on('error', (err) => {
+                console.error("Peer error:", err);
                 document.getElementById('remote-status').innerHTML = "❌ <span class='text-red-400'>Gagal terhubung. Cek koneksi / PIN salah.</span>";
             });
 
             window.sendRemoteCmd = function(tabId) {
-                if (conn && conn.open) {
-                    // 1. Kirim perintah ke Laptop
-                    conn.send({ command: tabId });
+                if (window.activeConn && window.activeConn.open) {
+                    // 1. Kirim perintah ke Laptop secara pasti (Reliable Mode)
+                    window.activeConn.send({ command: tabId });
                     if ('vibrate' in navigator) navigator.vibrate(50);
 
                     // 2. Tampilkan Konten Presentasi di HP
@@ -640,7 +646,7 @@
                     // 3. Buka tab yang dipilih secara lokal di HP
                     openTab(tabId);
                 } else {
-                    alert("Belum terhubung ke laptop.");
+                    alert("Koneksi belum stabil atau terputus. Tunggu sebentar atau muat ulang (refresh) halaman HP Anda.");
                 }
             }
 
@@ -661,11 +667,20 @@
             peer = new Peer(myHostId); // Pakai ID spesifik (XTRON-XXXX)
 
             peer.on('connection', function(connection) {
-                document.getElementById('connection-status').innerHTML = "<span class='text-emerald-600 font-bold text-lg'>✅ HP Terhubung! Menutup popup...</span>";
-                setTimeout(closeQRModal, 1500);
+                window.activeConn = connection; // Cegah koneksi mati karena idle (Garbage Collection)
 
+                // Pastikan menunggu event 'open' dari sisi penerima sebelum siap mendengarkan data
+                connection.on('open', function() {
+                    document.getElementById('connection-status').innerHTML = "<span class='text-emerald-600 font-bold text-lg'>✅ HP Terhubung! Menutup popup...</span>";
+                    setTimeout(closeQRModal, 1500);
+                });
+
+                // Dengarkan data (perintah klik) yang masuk dari HP
                 connection.on('data', function(data) {
-                    if (data.command) openTab(data.command);
+                    console.log("Menerima perintah dari HP:", data); // Debugging
+                    if (data && data.command) {
+                        openTab(data.command); // Pindahkan layar laptop!
+                    }
                 });
             });
 
@@ -675,12 +690,10 @@
                 document.getElementById('connection-status').innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menunggu koneksi HP...';
                 document.getElementById('session-pin').innerText = myShortPin;
 
-                // Cek apakah URL bersifat Offline/Lokal (file://, blob:, about:)
                 const baseUrl = window.location.href.split('?')[0]; 
                 const isLocal = baseUrl.startsWith('file:') || baseUrl.startsWith('blob:') || baseUrl.startsWith('about:');
 
                 if (isLocal) {
-                    // Tampilkan panduan jika belum dihosting
                     document.getElementById('qrcode').innerHTML = `
                         <div class="text-center p-3 bg-amber-50 rounded-xl border border-amber-200 w-full max-w-[220px]">
                             <i class="fa-solid fa-triangle-exclamation text-amber-500 text-3xl mb-2"></i>
@@ -696,7 +709,6 @@
                         </div>
                     `;
                 } else {
-                    // Jika URL Publik (Online), Generate QR secara Normal
                     const remoteUrl = baseUrl + '?remote=true&hostId=' + myHostId;
                     new QRCode(document.getElementById("qrcode"), {
                         text: remoteUrl,
@@ -713,7 +725,6 @@
                 document.getElementById('qrModal').classList.add('hidden');
             }
 
-            // Fungsi untuk HP masuk mode Remote secara manual pakai PIN
             window.enterManualRemote = function() {
                 const pin = prompt("Jika Anda membuka file ini di HP, masukkan 4 digit PIN yang tampil di layar Laptop:");
                 if (pin && pin.trim().length === 4) {
