@@ -94,7 +94,7 @@
     </aside>
 
     <!-- Main Content Area -->
-    <main class="flex-1 h-full overflow-y-auto bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-slate-50 relative pb-24 md:pb-0">
+    <main class="flex-1 h-full overflow-y-auto bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-slate-50 relative pb-24 md:pb-0 scroll-smooth">
         <div class="absolute inset-0 bg-gradient-to-br from-slate-50/90 to-slate-200/90 z-0"></div>
         
         <div class="relative z-10 max-w-5xl mx-auto p-6 md:p-10">
@@ -137,7 +137,7 @@
                     <div class="w-full md:w-1/3 bg-slate-800 rounded-xl p-6 text-center border border-slate-700">
                         <p class="text-slate-400 text-sm mb-2">Target Penghematan Listrik</p>
                         <p class="text-5xl font-extrabold text-brand-light">50<span class="text-3xl">%</span></p>
-                        <button onclick="openTab('simulation')" class="mt-4 w-full bg-brand-primary hover:bg-emerald-500 text-white font-bold py-2 px-4 rounded transition-colors shadow-lg shadow-emerald-500/30">Lihat Simulasi</button>
+                        <button onclick="sendRemoteCmd('simulation')" class="mt-4 w-full bg-brand-primary hover:bg-emerald-500 text-white font-bold py-2 px-4 rounded transition-colors shadow-lg shadow-emerald-500/30">Lihat Simulasi</button>
                     </div>
                 </div>
             </section>
@@ -570,9 +570,14 @@
                     btn.classList.add('bg-brand-primary', 'text-white');
                 }
             });
-            document.querySelector('main').scrollTo({top: 0, behavior: 'smooth'});
+            
+            // Saat ganti tab, reset scrollbar ke atas
+            document.querySelector('main').scrollTo({top: 0, behavior: 'auto'});
         }
 
+        // ==========================================
+        // CALCULATOR LOGIC (SIMULASI)
+        // ==========================================
         function formatCurrency(number) {
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
         }
@@ -588,11 +593,16 @@
             document.getElementById('res-total-saving').innerText = formatCurrency(totalSaving);
             document.getElementById('res-client-profit').innerText = formatCurrency(totalSaving * clientSharePercent);
             document.getElementById('res-investor-revenue').innerText = formatCurrency(totalSaving * investorSharePercent);
+            
+            // Jika diedit lewat HP, kirim juga perubahannya ke laptop
+            if (isRemote && window.activeConn && window.activeConn.open) {
+                 window.activeConn.send("CALC_" + bill + "_" + savingPercent + "_" + clientSharePercent);
+            }
         }
         calculateROI(); // Init kalkulator
 
         // ==========================================
-        // SISTEM REMOTE CONTROL P2P (FULL FIX + STUN + TELEPROMPTER)
+        // SISTEM REMOTE CONTROL P2P (FULL FIX + STUN + TELEPROMPTER + SCROLL SYNC)
         // ==========================================
         const urlParams = new URLSearchParams(window.location.search);
         const isRemote = urlParams.get('remote') === 'true';
@@ -609,7 +619,8 @@
         };
 
         let peer = null;
-        window.activeConn = null; // Menjaga koneksi agar tidak di garbage collection
+        window.activeConn = null; // Menjaga koneksi agar tidak terhapus memory browser
+        let scrollSyncTimeout = null; // Variabel untuk mengerem pengiriman scroll agar tidak lag
         
         const myShortPin = Math.floor(1000 + Math.random() * 9000).toString();
         const myHostId = 'xtron-' + myShortPin;
@@ -642,10 +653,15 @@
                 document.getElementById('remote-status').innerHTML = "❌ <span class='text-red-400'>Gagal terhubung. Cek koneksi / PIN salah.</span>";
             });
 
+            // FUNGSI GANTI HALAMAN
             window.sendRemoteCmd = function(tabId) {
                 if (window.activeConn && window.activeConn.open) {
-                    // Mengirim format String Murni (Anti-Gagal)
-                    window.activeConn.send("TAB_" + tabId);
+                    
+                    if(tabId !== 'simulation') {
+                         window.activeConn.send("TAB_" + tabId); // Kirim instruksi ganti tab ke laptop
+                    } else {
+                         window.activeConn.send("TAB_" + tabId); // Kasus khusus tab simulasi
+                    }
                     
                     if ('vibrate' in navigator) navigator.vibrate(50);
 
@@ -663,7 +679,7 @@
                 }
             }
 
-            // Fungsi tombol melayang di HP
+            // FUNGSI KEMBALI KE MENU ICON
             window.showRemoteMenu = function() {
                 document.querySelector('main').style.display = 'none';
                 document.getElementById('backToRemoteBtn').classList.add('hidden');
@@ -672,6 +688,30 @@
                 document.getElementById('remoteUI').classList.remove('hidden');
                 document.getElementById('remoteUI').classList.add('flex');
             }
+
+            // FUNGSI SINKRONISASI SCROLL (HP -> LAPTOP)
+            // Saat Anda menggeser layar di HP, kirim posisinya ke laptop
+            document.querySelector('main').addEventListener('scroll', function() {
+                if (!window.activeConn || !window.activeConn.open) return;
+                
+                // Rem pengiriman (Throttle) agar tidak mengirim ribuan sinyal per detik yang bikin lag
+                if (scrollSyncTimeout) return; 
+                
+                scrollSyncTimeout = setTimeout(() => {
+                    const mainArea = document.querySelector('main');
+                    // Hitung persentase scroll (0.0 sampai 1.0)
+                    const maxScroll = mainArea.scrollHeight - mainArea.clientHeight;
+                    if (maxScroll <= 0) {
+                        scrollSyncTimeout = null;
+                        return;
+                    }
+                    const scrollPercentage = mainArea.scrollTop / maxScroll;
+                    
+                    // Kirim persentase ke laptop
+                    window.activeConn.send("SCROLL_" + scrollPercentage.toFixed(4));
+                    scrollSyncTimeout = null;
+                }, 30); // 30 milliseconds delay (~30 FPS scroll sync)
+            });
 
         } else {
             // ==========================================
@@ -687,17 +727,49 @@
                     setTimeout(closeQRModal, 1500);
                 });
 
+                // KETIKA LAPTOP MENERIMA SINYAL DARI HP
                 connection.on('data', function(data) {
-                    console.log("Menerima perintah dari HP:", data); 
-                    
-                    // Filter penerimaan format String
-                    if (typeof data === 'string' && data.startsWith("TAB_")) {
-                        const targetTab = data.replace("TAB_", "");
-                        openTab(targetTab); 
-                    } 
-                    // Fallback jika sistem lama tersimpan di cache
-                    else if (data && data.command) {
-                        openTab(data.command); 
+                    if (typeof data === 'string') {
+                        
+                        // 1. Jika sinyal Ganti Tab
+                        if (data.startsWith("TAB_")) {
+                            const targetTab = data.replace("TAB_", "");
+                            openTab(targetTab); 
+                        } 
+                        
+                        // 2. Jika sinyal Menggeser Layar (SCROLL)
+                        else if (data.startsWith("SCROLL_")) {
+                            const scrollPercent = parseFloat(data.replace("SCROLL_", ""));
+                            const mainArea = document.querySelector('main');
+                            const maxScroll = mainArea.scrollHeight - mainArea.clientHeight;
+                            
+                            // Paksa laptop untuk melompat ke titik scroll yang persis sama dengan HP
+                            mainArea.scrollTop = maxScroll * scrollPercent;
+                        }
+
+                        // 3. Jika sinyal Merubah Angka Kalkulator
+                        else if (data.startsWith("CALC_")) {
+                            const parts = data.split("_");
+                            document.getElementById('calc-bill').value = parts[1];
+                            document.getElementById('calc-saving').value = parts[2] * 100;
+                            document.getElementById('calc-client-share').value = parts[3] * 100;
+                            
+                            // Update label slider
+                            document.getElementById('saving-val').innerText = (parts[2]*100) + '%';
+                            document.getElementById('client-share-val').innerText = (parts[3]*100) + '%';
+                            
+                            // Hitung ulang di laptop tanpa mengirim balik
+                            const bill = parseFloat(parts[1]);
+                            const saving = parseFloat(parts[2]);
+                            const clientShare = parseFloat(parts[3]);
+                            const invShare = 1 - clientShare;
+                            
+                            document.getElementById('investor-share-val').innerText = (invShare * 100).toFixed(0) + '%';
+                            const totalSaving = bill * saving;
+                            document.getElementById('res-total-saving').innerText = formatCurrency(totalSaving);
+                            document.getElementById('res-client-profit').innerText = formatCurrency(totalSaving * clientShare);
+                            document.getElementById('res-investor-revenue').innerText = formatCurrency(totalSaving * invShare);
+                        }
                     }
                 });
             });
