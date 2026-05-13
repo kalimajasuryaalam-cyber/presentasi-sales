@@ -549,6 +549,11 @@
         </div>
     </div>
 
+    <!-- Tombol Melayang untuk Kembali ke Menu Remote (Hanya di HP) -->
+    <button id="backToRemoteBtn" onclick="showRemoteMenu()" class="hidden fixed bottom-8 left-1/2 -translate-x-1/2 bg-brand-dark text-white font-bold py-4 px-8 rounded-full shadow-[0_10px_40px_rgba(5,150,105,0.4)] z-[200] border border-emerald-500 flex items-center justify-center gap-3 active:scale-95 transition-transform w-[85%] max-w-sm">
+        <i class="fa-solid fa-xmark text-emerald-400 text-2xl"></i> Tutup & Kembali
+    </button>
+
     <script>
         // Tab Navigation Logic
         function openTab(tabId) {
@@ -621,11 +626,34 @@
 
             window.sendRemoteCmd = function(tabId) {
                 if (conn && conn.open) {
+                    // 1. Kirim perintah ke Laptop
                     conn.send({ command: tabId });
                     if ('vibrate' in navigator) navigator.vibrate(50);
+
+                    // 2. Tampilkan Konten Presentasi di HP
+                    document.getElementById('remoteUI').classList.add('hidden');
+                    document.getElementById('remoteUI').classList.remove('flex');
+                    document.querySelector('main').style.display = 'block';
+                    document.getElementById('backToRemoteBtn').classList.remove('hidden');
+                    document.getElementById('backToRemoteBtn').classList.add('flex');
+                    
+                    // 3. Buka tab yang dipilih secara lokal di HP
+                    openTab(tabId);
                 } else {
                     alert("Belum terhubung ke laptop.");
                 }
+            }
+
+            // Fungsi baru: Menutup layar presentasi di HP dan kembali ke menu icon
+            window.showRemoteMenu = function() {
+                // Sembunyikan konten & tombol tutup
+                document.querySelector('main').style.display = 'none';
+                document.getElementById('backToRemoteBtn').classList.add('hidden');
+                document.getElementById('backToRemoteBtn').classList.remove('flex');
+                
+                // Tampilkan kembali menu icon remote
+                document.getElementById('remoteUI').classList.remove('hidden');
+                document.getElementById('remoteUI').classList.add('flex');
             }
 
         } else {
