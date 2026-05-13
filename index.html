@@ -521,7 +521,7 @@
         </div>
     </div>
 
-    <!-- Modal Input PIN Baru (Menggantikan prompt bawaan) -->
+    <!-- Modal Input PIN Baru -->
     <div id="pinModal" class="hidden fixed inset-0 bg-slate-900/80 z-[60] flex items-center justify-center backdrop-blur-sm">
         <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-sm w-full text-center relative">
             <button onclick="closePinModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
@@ -574,6 +574,29 @@
 
     <script>
         // ==========================================
+        // INISIALISASI VARIABEL GLOBAL (PERBAIKAN FATAL ERROR)
+        // ==========================================
+        const urlParams = new URLSearchParams(window.location.search);
+        const isRemote = urlParams.get('remote') === 'true';
+        const hostIdParam = urlParams.get('hostId');
+
+        const peerConfig = {
+            config: {
+                'iceServers': [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' }
+                ]
+            },
+            debug: 2
+        };
+
+        let peer = null;
+        window.activeConn = null; 
+        let scrollSyncTimeout = null; 
+        window.myShortPin = null;
+        window.myHostId = null;
+
+        // ==========================================
         // TAB & UI LOGIC
         // ==========================================
         function openTab(tabId) {
@@ -591,9 +614,6 @@
             document.querySelector('main').scrollTo({top: 0, behavior: 'auto'});
         }
 
-        // ==========================================
-        // CALCULATOR LOGIC (SIMULASI)
-        // ==========================================
         function formatCurrency(number) {
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
         }
@@ -610,37 +630,20 @@
             document.getElementById('res-client-profit').innerText = formatCurrency(totalSaving * clientSharePercent);
             document.getElementById('res-investor-revenue').innerText = formatCurrency(totalSaving * investorSharePercent);
             
+            // Variabel isRemote sekarang aman dibaca karena sudah diinisialisasi di paling atas
             if (isRemote && window.activeConn && window.activeConn.open) {
                  window.activeConn.send("CALC_" + bill + "_" + savingPercent + "_" + clientSharePercent);
             }
         }
+        
+        // Panggil kalkulator pertama kali
         calculateROI();
 
         // ==========================================
-        // SISTEM REMOTE CONTROL P2P (MENCEGAH SILENT FAILURE)
+        // SISTEM REMOTE CONTROL P2P 
         // ==========================================
-        const urlParams = new URLSearchParams(window.location.search);
-        const isRemote = urlParams.get('remote') === 'true';
-        const hostIdParam = urlParams.get('hostId');
-
-        const peerConfig = {
-            config: {
-                'iceServers': [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' }
-                ]
-            },
-            debug: 2 // Menyalakan log jika ada error jaringan
-        };
-
-        let peer = null;
-        window.activeConn = null; 
-        let scrollSyncTimeout = null; 
-
         if (isRemote) {
-            // ==========================================
             // ---> MODE HP (REMOTE)
-            // ==========================================
             document.querySelector('aside').style.display = 'none';
             document.querySelector('main').style.display = 'none';
             document.getElementById('remoteUI').classList.remove('hidden');
@@ -652,7 +655,6 @@
                 document.getElementById('remote-status').innerHTML = "<i class='fa-solid fa-spinner fa-spin mr-2'></i>Mencari Laptop...";
                 window.activeConn = peer.connect(hostIdParam);
                 
-                // SENSOR DIAGNOSTIK: 8 Detik Timeout Pencarian Laptop
                 let connectionTimeout = setTimeout(() => {
                     if (!window.activeConn || !window.activeConn.open) {
                         document.getElementById('remote-status').innerHTML = "❌ <span class='text-red-400 font-bold'>Laptop tidak ditemukan!</span><br><span class='text-xs text-slate-400 mt-1 block'>Pastikan PIN benar & web Laptop sedang dibuka.</span><br><button onclick='location.href=location.href.split(\"?\")[0]' class='mt-4 px-6 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm text-white font-bold transition-colors'>Kembali & Ulangi</button>";
@@ -660,7 +662,7 @@
                 }, 8000);
 
                 window.activeConn.on('open', () => {
-                    clearTimeout(connectionTimeout); // Matikan sensor jika berhasil
+                    clearTimeout(connectionTimeout); 
                     document.getElementById('remote-status').innerHTML = "✅ <span class='text-emerald-400 font-bold'>Terhubung! Silakan kontrol layar.</span>";
                 });
                 
@@ -675,7 +677,7 @@
             });
 
             peer.on('disconnected', () => {
-                peer.reconnect(); // Auto-reconnect jika wifi HP berkedip
+                peer.reconnect(); 
             });
 
             window.sendRemoteCmd = function(tabId) {
@@ -719,14 +721,11 @@
             });
 
         } else {
-            // ==========================================
             // ---> MODE LAPTOP (HOST)
-            // ==========================================
             function initHost() {
                 window.myShortPin = Math.floor(1000 + Math.random() * 9000).toString();
                 window.myHostId = 'xtron-' + window.myShortPin;
 
-                // Set UI ke mode Loading
                 document.getElementById('sidebar-pin').innerText = "....";
                 document.getElementById('sidebar-pin').classList.remove('text-emerald-400');
                 document.getElementById('sidebar-pin').classList.add('text-slate-500');
@@ -735,7 +734,6 @@
 
                 peer = new Peer(window.myHostId, peerConfig); 
 
-                // Event ketika Laptop BERHASIL mengamankan ID di Cloud
                 peer.on('open', function(id) {
                     document.getElementById('sidebar-pin').innerText = window.myShortPin;
                     document.getElementById('sidebar-pin').classList.remove('text-slate-500');
@@ -744,11 +742,10 @@
                     document.getElementById('host-status-dot').className = "flex w-2 h-2 rounded-full bg-emerald-500";
                 });
 
-                // Event jika Laptop GAGAL terhubung ke Cloud (Inilah penyebab Silent Failure sebelumnya)
                 peer.on('error', function(err) {
                     console.error("Host Error:", err);
                     if (err.type === 'unavailable-id') {
-                        initHost(); // ID tabrakan? Buat ulang otomatis
+                        initHost(); 
                     } else {
                         document.getElementById('sidebar-pin').innerText = "ERR!";
                         document.getElementById('host-status-text').innerText = "Gagal. Refresh halaman.";
@@ -756,14 +753,12 @@
                     }
                 });
 
-                // Event jika Laptop terputus dari Cloud
                 peer.on('disconnected', function() {
                     document.getElementById('host-status-text').innerText = "Koneksi terputus. Mencoba lagi...";
                     document.getElementById('host-status-dot').className = "flex w-2 h-2 rounded-full bg-yellow-500";
-                    peer.reconnect(); // Auto-reconnect
+                    peer.reconnect(); 
                 });
 
-                // Event saat HP berhasil terkoneksi ke Laptop
                 peer.on('connection', function(connection) {
                     window.activeConn = connection; 
                     document.getElementById('host-status-text').innerText = "HP Terhubung!";
@@ -810,7 +805,6 @@
                 });
             }
 
-            // Jalankan sistem Host
             initHost();
 
             // Fungsi Modal UI
