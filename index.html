@@ -387,94 +387,142 @@
                 </div>
             </section>
 
-            <!-- TAB: PORTAL & TRANSPARENCY -->
+            <!-- TAB: PORTAL & TRANSPARENCY (UPDATED WITH KSA SEMESTA UI MOCKUP) -->
             <section id="portal" class="tab-content">
                 <div class="mb-10 border-b border-slate-200 pb-6">
                     <h2 class="text-3xl font-bold text-brand-dark mb-2">Transparansi Mutlak (Portal Cloud)</h2>
-                    <p class="text-slate-600">Anda tidak menaruh uang dalam kegelapan. Akses eksklusif di <span class="font-mono text-brand-accent bg-blue-50 px-2 py-0.5 rounded">ksasemesta.it.com</span></p>
+                    <p class="text-slate-600">Anda tidak menaruh uang dalam kegelapan. Berikut adalah simulasi tampilan asli <strong>Dashboard Shareholder</strong> di <span class="font-mono text-brand-accent bg-blue-50 px-2 py-0.5 rounded">ksasemesta.it.com</span></p>
                 </div>
 
-                <div class="bg-slate-900 rounded-3xl overflow-hidden shadow-2xl flex flex-col lg:flex-row">
-                    <!-- Dashboard Mockup -->
-                    <div class="lg:w-1/2 p-6 bg-slate-800 border-r border-slate-700 relative">
-                        <div class="flex items-center justify-between mb-6">
-                            <div class="text-white font-bold"><i class="fa-solid fa-cloud text-brand-primary mr-2"></i> Kalimaja Portal</div>
-                            <div class="text-xs text-slate-400">Shareholder View</div>
+                <div class="bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-700">
+                    <!-- Top Bar Mockup KSA Semesta -->
+                    <div class="bg-slate-950 px-6 py-4 flex items-center justify-between border-b border-slate-800">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-bolt text-brand-primary text-xl"></i>
+                            <span class="text-white font-bold tracking-wider">KALIMAJA SURYA ALAM</span>
                         </div>
-                        <!-- UI Elements Mockup -->
-                        <div class="space-y-4">
-                            <div class="bg-slate-700 rounded-lg p-4">
-                                <div class="text-xs text-slate-400">Dividen Anda (Bulan Ini)</div>
-                                <div class="text-2xl text-emerald-400 font-mono font-bold">Rp 3.450.000</div>
-                            </div>
-                            <div class="bg-slate-700 rounded-lg p-4">
-                                <div class="text-xs text-slate-400 mb-2">Proyek Aktif (Live Monitor)</div>
-                                <div class="flex justify-between items-center text-sm text-white border-b border-slate-600 pb-2 mb-2">
-                                    <span>Hotel Grand Aston</span>
-                                    <span class="text-emerald-400">Active</span>
-                                </div>
-                                <div class="flex justify-between items-center text-sm text-white">
-                                    <span>Pabrik Tekstil Jaya</span>
-                                    <span class="text-emerald-400">Active</span>
-                                </div>
-                            </div>
+                        <div class="text-xs text-slate-400 bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
+                            <i class="fa-solid fa-user-tie mr-1"></i> Dashboard Shareholder
                         </div>
-                        <!-- decorative gradient -->
-                        <div class="absolute bottom-0 right-0 w-32 h-32 bg-brand-primary blur-[80px] opacity-30"></div>
                     </div>
-                    
-                    <!-- Features -->
-                    <div class="lg:w-1/2 p-8 lg:p-10 text-white flex flex-col justify-center">
-                        <ul class="space-y-6">
-                            <li class="flex items-start gap-4">
-                                <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0">
-                                    <i class="fa-solid fa-list-check text-brand-primary"></i>
+
+                    <!-- Dashboard Body Mockup -->
+                    <div class="p-6 md:p-8 bg-slate-900 grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
+                        <!-- BG Gradient decoration -->
+                        <div class="absolute bottom-0 right-0 w-64 h-64 bg-brand-primary blur-[100px] opacity-20 pointer-events-none"></div>
+
+                        <!-- Left Col: Financial Summary -->
+                        <div class="lg:col-span-1 space-y-4">
+                            <div class="bg-slate-800/80 rounded-xl p-5 border border-slate-700 backdrop-blur-sm">
+                                <p class="text-slate-400 text-[10px] font-bold uppercase mb-1 tracking-wider">Total Laba PT (30% dr Gross)</p>
+                                <p class="text-xl text-white font-mono font-bold">Rp 12.500.000</p>
+                            </div>
+                            
+                            <div class="bg-gradient-to-br from-brand-dark to-slate-800 rounded-xl p-5 border border-brand-primary/50 relative overflow-hidden shadow-lg shadow-emerald-900/20">
+                                <div class="absolute -right-4 -bottom-4 opacity-10"><i class="fa-solid fa-money-bill-trend-up text-6xl text-brand-primary"></i></div>
+                                <p class="text-emerald-400 text-[10px] font-bold uppercase mb-1 tracking-wider">Hak Dividen Anda</p>
+                                <p class="text-3xl text-white font-mono font-bold">Rp 8.750.000</p>
+                                <div class="mt-4 pt-4 border-t border-slate-700/50">
+                                    <p class="text-[10px] text-slate-400">Sisa Deposit Belum Terpakai:</p>
+                                    <p class="text-xs text-slate-300 font-mono mt-1">Rp 14.250.000 (Tier D)</p>
                                 </div>
-                                <div>
-                                    <h4 class="font-bold text-lg">Daftar Portofolio Proyek</h4>
-                                    <p class="text-sm text-slate-400 mt-1">Melihat secara detail di gedung atau perusahaan mana alat Xtron Anda terpasang.</p>
+                            </div>
+
+                            <div class="bg-slate-800/80 rounded-xl p-5 border border-slate-700 backdrop-blur-sm">
+                                <p class="text-slate-300 text-xs font-bold mb-3 border-b border-slate-700 pb-2"><i class="fa-solid fa-chart-pie mr-2 text-brand-accent"></i>Distribution Matrix</p>
+                                <div class="space-y-3 text-xs">
+                                    <div class="flex justify-between items-center"><span class="text-slate-500">Customer Share:</span><span class="text-white font-mono bg-slate-900 px-2 py-0.5 rounded">Rp 3.500.000</span></div>
+                                    <div class="flex justify-between items-center"><span class="text-slate-500">Laba Perusahaan:</span><span class="text-white font-mono bg-slate-900 px-2 py-0.5 rounded">Rp 1.500.000</span></div>
+                                    <div class="flex justify-between items-center border-t border-slate-700 pt-3">
+                                        <span class="text-emerald-400 font-bold">Net Profit Investor:</span>
+                                        <span class="text-emerald-400 font-mono font-bold text-sm">Rp 3.500.000</span>
+                                    </div>
                                 </div>
-                            </li>
-                            <li class="flex items-start gap-4">
-                                <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0">
-                                    <i class="fa-solid fa-chart-line text-brand-primary"></i>
+                            </div>
+                        </div>
+
+                        <!-- Right Col: Project Performance -->
+                        <div class="lg:col-span-2 space-y-6 z-10">
+                            <!-- Performance Monitor -->
+                            <div class="bg-slate-800/80 rounded-xl p-5 border border-slate-700 backdrop-blur-sm">
+                                <h4 class="text-white font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-bolt text-yellow-500"></i> Performance Monitor (Bulan Ini)</h4>
+                                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                    <div class="bg-slate-900/80 p-4 rounded-lg border border-slate-700">
+                                        <p class="text-[10px] text-slate-500 uppercase tracking-wide">Estimasi Normal</p>
+                                        <p class="text-sm md:text-base text-red-400 font-mono font-bold mt-1">Rp 25.000.000</p>
+                                    </div>
+                                    <div class="bg-slate-900/80 p-4 rounded-lg border border-slate-700">
+                                        <p class="text-[10px] text-slate-500 uppercase tracking-wide">Tagihan Aktual</p>
+                                        <p class="text-sm md:text-base text-brand-primary font-mono font-bold mt-1">Rp 16.500.000</p>
+                                    </div>
+                                    <div class="bg-slate-900/80 p-4 rounded-lg col-span-2 md:col-span-1 border-l-4 border-l-brand-primary border-y border-r border-slate-700">
+                                        <p class="text-[10px] text-emerald-500 uppercase font-bold tracking-wide">Real Saving Murni</p>
+                                        <p class="text-lg md:text-xl text-white font-mono font-bold mt-1">Rp 8.500.000</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h4 class="font-bold text-lg">Performance Monitor</h4>
-                                    <p class="text-sm text-slate-400 mt-1">Pantau langsung kWh aktual vs estimasi normal, serta pencapaian Real Saving murni per bulan.</p>
+                            </div>
+
+                            <!-- Database Proyek Aktif -->
+                            <div class="bg-slate-800/80 rounded-xl border border-slate-700 overflow-hidden backdrop-blur-sm">
+                                <div class="px-5 py-4 border-b border-slate-700 bg-slate-900/50 flex justify-between items-center">
+                                    <h4 class="text-white font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-server text-brand-accent"></i> Database Proyek Aktif Anda</h4>
+                                    <span class="text-[10px] bg-slate-700 text-slate-300 px-2 py-1 rounded">2 Proyek Aktif</span>
                                 </div>
-                            </li>
-                            <li class="flex items-start gap-4">
-                                <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0">
-                                    <i class="fa-solid fa-shield-cat text-brand-primary"></i>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left text-xs text-slate-300">
+                                        <thead class="bg-slate-900/80 text-slate-500">
+                                            <tr>
+                                                <th class="px-5 py-3 font-medium tracking-wider">Lokasi / Nama Gedung</th>
+                                                <th class="px-5 py-3 font-medium tracking-wider">Total Unit</th>
+                                                <th class="px-5 py-3 font-medium tracking-wider">Nilai CAPEX</th>
+                                                <th class="px-5 py-3 font-medium tracking-wider">Pembayaran Inv</th>
+                                                <th class="px-5 py-3 font-medium tracking-wider">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-700/50">
+                                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                                <td class="px-5 py-4 font-bold text-white">Hotel Grand Aston</td>
+                                                <td class="px-5 py-4 text-center">24</td>
+                                                <td class="px-5 py-4 font-mono">Rp 14.250.000</td>
+                                                <td class="px-5 py-4 font-mono text-emerald-400 font-bold">Rp 2.100.000</td>
+                                                <td class="px-5 py-4"><span class="bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded text-[10px] font-bold border border-emerald-500/30">Active</span></td>
+                                            </tr>
+                                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                                <td class="px-5 py-4 font-bold text-white">Pabrik Tekstil Jaya</td>
+                                                <td class="px-5 py-4 text-center">15</td>
+                                                <td class="px-5 py-4 font-mono">Rp 8.000.000</td>
+                                                <td class="px-5 py-4 font-mono text-emerald-400 font-bold">Rp 1.400.000</td>
+                                                <td class="px-5 py-4"><span class="bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded text-[10px] font-bold border border-emerald-500/30">Active</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
-                                <div>
-                                    <h4 class="font-bold text-lg">Keamanan Deposit</h4>
-                                    <p class="text-sm text-slate-400 mt-1">Sisa deposit yang belum masuk proyek dapat dikembalikan setelah 45 hari atau di-roll over.</p>
-                                </div>
-                            </li>
-                        </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- ESG Section -->
-                <div class="mt-12 bg-white rounded-2xl p-8 border border-emerald-100 shadow-sm">
-                    <h3 class="text-xl font-bold text-brand-dark mb-6 text-center">Nilai Tambah Investasi: <span class="text-emerald-600">E S G</span></h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                <!-- Feature Highlights below Mockup -->
+                <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-start gap-4">
+                        <i class="fa-solid fa-file-invoice text-3xl text-brand-primary mt-1"></i>
                         <div>
-                            <i class="fa-solid fa-leaf text-3xl text-emerald-500 mb-3"></i>
-                            <h4 class="font-bold mb-2">Environmental</h4>
-                            <p class="text-xs text-slate-600">Mendukung <i>Net Zero Emission</i> dengan memangkas jejak karbon dari konsumsi listrik besar.</p>
+                            <h4 class="font-bold text-slate-800">Invoice Otomatis</h4>
+                            <p class="text-xs text-slate-600 mt-1">Sistem kami (KSA Semesta) terintegrasi untuk mencetak Invoice Penagihan ke klien berdasarkan data riil kWh per bulan.</p>
                         </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-start gap-4">
+                        <i class="fa-solid fa-chart-line text-3xl text-brand-accent mt-1"></i>
                         <div>
-                            <i class="fa-solid fa-users text-3xl text-blue-500 mb-3"></i>
-                            <h4 class="font-bold mb-2">Social</h4>
-                            <p class="text-xs text-slate-600">Memberdayakan teknisi lokal dan menciptakan kenyamanan suhu ruang kerja karyawan.</p>
+                            <h4 class="font-bold text-slate-800">Rincian per Unit AC</h4>
+                            <p class="text-xs text-slate-600 mt-1">Anda dapat memantau kalkulasi akumulasi pemakaian listrik (kWh) secara spesifik pada masing-masing mesin yang terpasang.</p>
                         </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-start gap-4">
+                        <i class="fa-solid fa-money-bill-transfer text-3xl text-orange-500 mt-1"></i>
                         <div>
-                            <i class="fa-solid fa-scale-balanced text-3xl text-slate-700 mb-3"></i>
-                            <h4 class="font-bold mb-2">Governance</h4>
-                            <p class="text-xs text-slate-600">Tata kelola keuangan 100% transparan, dapat diaudit via database cloud terpusat.</p>
+                            <h4 class="font-bold text-slate-800">Keamanan Deposit</h4>
+                            <p class="text-xs text-slate-600 mt-1">Sisa deposit yang belum masuk antrean proyek (idle) dapat dikembalikan penuh setelah 45 hari tanpa potongan.</p>
                         </div>
                     </div>
                 </div>
@@ -514,7 +562,7 @@
             </div>
 
             <p class="text-xs text-slate-500 mb-2">Atau masukkan PIN ini di menu "Input PIN Remote" pada HP Anda:</p>
-            <div class="text-3xl font-mono font-bold tracking-widest text-brand-primary bg-slate-50 py-2 rounded-lg border border-slate-200 inline-block px-6" id="session-pin">
+            <div class="text-3xl font-mono font-bold tracking-widest text-brand-primary bg-slate-50 py-2 rounded-lg border border-slate-200 inline-block px-6" id="session-pin-modal">
                 ----
             </div>
             <p class="text-sm font-medium text-slate-500 mt-4" id="connection-status"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Menunggu koneksi HP...</p>
@@ -574,11 +622,14 @@
 
     <script>
         // ==========================================
-        // INISIALISASI VARIABEL GLOBAL (PERBAIKAN FATAL ERROR)
+        // PERBAIKAN FATAL ERROR: Canvas / iframe Environment Check & Global Variable Init
         // ==========================================
         const urlParams = new URLSearchParams(window.location.search);
         const isRemote = urlParams.get('remote') === 'true';
         const hostIdParam = urlParams.get('hostId');
+
+        // Mendeteksi apakah dijalankan di dalam jendela preview (Canvas) untuk mencegah error WebSocket
+        const isPreviewEnv = window.self !== window.top;
 
         const peerConfig = {
             config: {
@@ -586,8 +637,7 @@
                     { urls: 'stun:stun.l.google.com:19302' },
                     { urls: 'stun:stun1.l.google.com:19302' }
                 ]
-            },
-            debug: 2
+            }
         };
 
         let peer = null;
@@ -595,6 +645,18 @@
         let scrollSyncTimeout = null; 
         window.myShortPin = null;
         window.myHostId = null;
+
+        // Tangkap SecurityError WebSockets bawaan preview iframe agar tidak merusak seluruh web
+        window.addEventListener('error', function(e) {
+            if (e.message && e.message.includes('WebSocket')) {
+                const pinEl = document.getElementById('sidebar-pin');
+                if (pinEl) {
+                    pinEl.innerText = "OFF";
+                    document.getElementById('host-status-text').innerText = "Remote nonaktif di mode Preview";
+                    document.getElementById('host-status-dot').className = "flex w-2 h-2 rounded-full bg-red-500";
+                }
+            }
+        });
 
         // ==========================================
         // TAB & UI LOGIC
@@ -630,17 +692,15 @@
             document.getElementById('res-client-profit').innerText = formatCurrency(totalSaving * clientSharePercent);
             document.getElementById('res-investor-revenue').innerText = formatCurrency(totalSaving * investorSharePercent);
             
-            // Variabel isRemote sekarang aman dibaca karena sudah diinisialisasi di paling atas
             if (isRemote && window.activeConn && window.activeConn.open) {
                  window.activeConn.send("CALC_" + bill + "_" + savingPercent + "_" + clientSharePercent);
             }
         }
         
-        // Panggil kalkulator pertama kali
         calculateROI();
 
         // ==========================================
-        // SISTEM REMOTE CONTROL P2P 
+        // SISTEM REMOTE CONTROL P2P DENGAN SAFETY HANDLING
         // ==========================================
         if (isRemote) {
             // ---> MODE HP (REMOTE)
@@ -649,36 +709,42 @@
             document.getElementById('remoteUI').classList.remove('hidden');
             document.getElementById('remoteUI').classList.add('flex');
             
-            peer = new Peer(peerConfig); 
+            try {
+                peer = new Peer(peerConfig); 
 
-            peer.on('open', function() {
-                document.getElementById('remote-status').innerHTML = "<i class='fa-solid fa-spinner fa-spin mr-2'></i>Mencari Laptop...";
-                window.activeConn = peer.connect(hostIdParam);
+                peer.on('open', function() {
+                    document.getElementById('remote-status').innerHTML = "<i class='fa-solid fa-spinner fa-spin mr-2'></i>Mencari Laptop...";
+                    window.activeConn = peer.connect(hostIdParam);
+                    
+                    let connectionTimeout = setTimeout(() => {
+                        if (!window.activeConn || !window.activeConn.open) {
+                            document.getElementById('remote-status').innerHTML = "❌ <span class='text-red-400 font-bold'>Laptop tidak ditemukan!</span><br><span class='text-xs text-slate-400 mt-1 block'>Pastikan PIN benar & web Laptop sedang dibuka.</span><br><button onclick='location.href=location.href.split(\"?\")[0]' class='mt-4 px-6 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm text-white font-bold transition-colors'>Kembali & Ulangi</button>";
+                        }
+                    }, 8000);
+
+                    window.activeConn.on('open', () => {
+                        clearTimeout(connectionTimeout); 
+                        document.getElementById('remote-status').innerHTML = "✅ <span class='text-emerald-400 font-bold'>Terhubung! Silakan kontrol layar.</span>";
+                    });
+                    
+                    window.activeConn.on('close', () => {
+                        document.getElementById('remote-status').innerHTML = "❌ <span class='text-red-400'>Koneksi terputus dari laptop.</span>";
+                    });
+                });
                 
-                let connectionTimeout = setTimeout(() => {
-                    if (!window.activeConn || !window.activeConn.open) {
-                        document.getElementById('remote-status').innerHTML = "❌ <span class='text-red-400 font-bold'>Laptop tidak ditemukan!</span><br><span class='text-xs text-slate-400 mt-1 block'>Pastikan PIN benar & web Laptop sedang dibuka.</span><br><button onclick='location.href=location.href.split(\"?\")[0]' class='mt-4 px-6 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm text-white font-bold transition-colors'>Kembali & Ulangi</button>";
+                peer.on('error', (err) => {
+                    console.error("Peer error:", err);
+                    if(err.message && err.message.includes('SecurityError')) {
+                        document.getElementById('remote-status').innerHTML = "❌ <span class='text-red-400'>Akses diblokir oleh browser. Host secara online (GitHub Pages) terlebih dahulu.</span>";
+                    } else {
+                        document.getElementById('remote-status').innerHTML = "❌ <span class='text-red-400'>Error Jaringan. Cek koneksi Anda.</span>";
                     }
-                }, 8000);
-
-                window.activeConn.on('open', () => {
-                    clearTimeout(connectionTimeout); 
-                    document.getElementById('remote-status').innerHTML = "✅ <span class='text-emerald-400 font-bold'>Terhubung! Silakan kontrol layar.</span>";
                 });
-                
-                window.activeConn.on('close', () => {
-                    document.getElementById('remote-status').innerHTML = "❌ <span class='text-red-400'>Koneksi terputus dari laptop.</span>";
-                });
-            });
-            
-            peer.on('error', (err) => {
-                console.error("Peer error:", err);
-                document.getElementById('remote-status').innerHTML = "❌ <span class='text-red-400'>Error Jaringan. Cek koneksi Anda.</span>";
-            });
 
-            peer.on('disconnected', () => {
-                peer.reconnect(); 
-            });
+                peer.on('disconnected', () => { peer.reconnect(); });
+            } catch(e) {
+                console.warn(e);
+            }
 
             window.sendRemoteCmd = function(tabId) {
                 if (window.activeConn && window.activeConn.open) {
@@ -705,6 +771,7 @@
                 document.getElementById('remoteUI').classList.add('flex');
             }
 
+            // Sync Scroll HP ke Laptop
             document.querySelector('main').addEventListener('scroll', function() {
                 if (!window.activeConn || !window.activeConn.open) return;
                 if (scrollSyncTimeout) return; 
@@ -732,88 +799,104 @@
                 document.getElementById('host-status-text').innerText = "Menghubungkan server...";
                 document.getElementById('host-status-dot').className = "flex w-2 h-2 rounded-full bg-yellow-500 animate-pulse";
 
-                peer = new Peer(window.myHostId, peerConfig); 
+                try {
+                    peer = new Peer(window.myHostId, peerConfig); 
 
-                peer.on('open', function(id) {
-                    document.getElementById('sidebar-pin').innerText = window.myShortPin;
-                    document.getElementById('sidebar-pin').classList.remove('text-slate-500');
-                    document.getElementById('sidebar-pin').classList.add('text-emerald-400');
-                    document.getElementById('host-status-text').innerText = "Siap dihubungkan ke HP";
-                    document.getElementById('host-status-dot').className = "flex w-2 h-2 rounded-full bg-emerald-500";
-                });
-
-                peer.on('error', function(err) {
-                    console.error("Host Error:", err);
-                    if (err.type === 'unavailable-id') {
-                        initHost(); 
-                    } else {
-                        document.getElementById('sidebar-pin').innerText = "ERR!";
-                        document.getElementById('host-status-text').innerText = "Gagal. Refresh halaman.";
-                        document.getElementById('host-status-dot').className = "flex w-2 h-2 rounded-full bg-red-500";
-                    }
-                });
-
-                peer.on('disconnected', function() {
-                    document.getElementById('host-status-text').innerText = "Koneksi terputus. Mencoba lagi...";
-                    document.getElementById('host-status-dot').className = "flex w-2 h-2 rounded-full bg-yellow-500";
-                    peer.reconnect(); 
-                });
-
-                peer.on('connection', function(connection) {
-                    window.activeConn = connection; 
-                    document.getElementById('host-status-text').innerText = "HP Terhubung!";
-                    document.getElementById('host-status-dot').className = "flex w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]";
-
-                    connection.on('open', function() {
-                        const qsStatus = document.getElementById('connection-status');
-                        if(qsStatus) qsStatus.innerHTML = "<span class='text-emerald-600 font-bold text-lg'>✅ HP Terhubung!</span>";
-                        setTimeout(closeQRModal, 1500);
+                    peer.on('open', function(id) {
+                        document.getElementById('sidebar-pin').innerText = window.myShortPin;
+                        if(document.getElementById('session-pin-modal')) document.getElementById('session-pin-modal').innerText = window.myShortPin;
+                        document.getElementById('sidebar-pin').classList.remove('text-slate-500');
+                        document.getElementById('sidebar-pin').classList.add('text-emerald-400');
+                        document.getElementById('host-status-text').innerText = "Siap dihubungkan ke HP";
+                        document.getElementById('host-status-dot').className = "flex w-2 h-2 rounded-full bg-emerald-500";
                     });
 
-                    connection.on('data', function(data) {
-                        if (typeof data === 'string') {
-                            if (data.startsWith("TAB_")) {
-                                openTab(data.replace("TAB_", "")); 
-                            } else if (data.startsWith("SCROLL_")) {
-                                const scrollPercent = parseFloat(data.replace("SCROLL_", ""));
-                                const mainArea = document.querySelector('main');
-                                const maxScroll = mainArea.scrollHeight - mainArea.clientHeight;
-                                mainArea.scrollTop = maxScroll * scrollPercent;
-                            } else if (data.startsWith("CALC_")) {
-                                const parts = data.split("_");
-                                document.getElementById('calc-bill').value = parts[1];
-                                document.getElementById('calc-saving').value = parts[2] * 100;
-                                document.getElementById('calc-client-share').value = parts[3] * 100;
-                                
-                                document.getElementById('saving-val').innerText = (parts[2]*100) + '%';
-                                document.getElementById('client-share-val').innerText = (parts[3]*100) + '%';
-                                
-                                const invShare = 1 - parseFloat(parts[3]);
-                                document.getElementById('investor-share-val').innerText = (invShare * 100).toFixed(0) + '%';
-                                const totalSaving = parseFloat(parts[1]) * parseFloat(parts[2]);
-                                document.getElementById('res-total-saving').innerText = formatCurrency(totalSaving);
-                                document.getElementById('res-client-profit').innerText = formatCurrency(totalSaving * parseFloat(parts[3]));
-                                document.getElementById('res-investor-revenue').innerText = formatCurrency(totalSaving * invShare);
-                            }
+                    peer.on('error', function(err) {
+                        console.error("Host Error:", err);
+                        if (err.type === 'unavailable-id') {
+                            initHost(); 
+                        } else if(err.message && err.message.includes('SecurityError') || isPreviewEnv) {
+                            document.getElementById('sidebar-pin').innerText = "OFF";
+                            document.getElementById('host-status-text').innerText = "Remote nonaktif di Preview (Buka Tab Baru)";
+                            document.getElementById('host-status-dot').className = "flex w-2 h-2 rounded-full bg-red-500";
+                        } else {
+                            document.getElementById('sidebar-pin').innerText = "ERR!";
+                            document.getElementById('host-status-text').innerText = "Gagal. Refresh halaman.";
+                            document.getElementById('host-status-dot').className = "flex w-2 h-2 rounded-full bg-red-500";
                         }
                     });
 
-                    connection.on('close', function() {
-                        document.getElementById('host-status-text').innerText = "HP Terputus. Siap dihubungkan.";
-                        document.getElementById('host-status-dot').className = "flex w-2 h-2 rounded-full bg-emerald-500";
+                    peer.on('disconnected', function() {
+                        document.getElementById('host-status-text').innerText = "Koneksi terputus. Mencoba lagi...";
+                        document.getElementById('host-status-dot').className = "flex w-2 h-2 rounded-full bg-yellow-500";
+                        peer.reconnect(); 
                     });
-                });
+
+                    peer.on('connection', function(connection) {
+                        window.activeConn = connection; 
+                        document.getElementById('host-status-text').innerText = "HP Terhubung!";
+                        document.getElementById('host-status-dot').className = "flex w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]";
+
+                        connection.on('open', function() {
+                            const qsStatus = document.getElementById('connection-status');
+                            if(qsStatus) qsStatus.innerHTML = "<span class='text-emerald-600 font-bold text-lg'>✅ HP Terhubung!</span>";
+                            setTimeout(closeQRModal, 1500);
+                        });
+
+                        // TERIMA PERINTAH DARI HP
+                        connection.on('data', function(data) {
+                            if (typeof data === 'string') {
+                                if (data.startsWith("TAB_")) {
+                                    openTab(data.replace("TAB_", "")); 
+                                } else if (data.startsWith("SCROLL_")) {
+                                    const scrollPercent = parseFloat(data.replace("SCROLL_", ""));
+                                    const mainArea = document.querySelector('main');
+                                    const maxScroll = mainArea.scrollHeight - mainArea.clientHeight;
+                                    mainArea.scrollTop = maxScroll * scrollPercent;
+                                } else if (data.startsWith("CALC_")) {
+                                    const parts = data.split("_");
+                                    document.getElementById('calc-bill').value = parts[1];
+                                    document.getElementById('calc-saving').value = parts[2] * 100;
+                                    document.getElementById('calc-client-share').value = parts[3] * 100;
+                                    
+                                    document.getElementById('saving-val').innerText = (parts[2]*100) + '%';
+                                    document.getElementById('client-share-val').innerText = (parts[3]*100) + '%';
+                                    
+                                    const invShare = 1 - parseFloat(parts[3]);
+                                    document.getElementById('investor-share-val').innerText = (invShare * 100).toFixed(0) + '%';
+                                    const totalSaving = parseFloat(parts[1]) * parseFloat(parts[2]);
+                                    document.getElementById('res-total-saving').innerText = formatCurrency(totalSaving);
+                                    document.getElementById('res-client-profit').innerText = formatCurrency(totalSaving * parseFloat(parts[3]));
+                                    document.getElementById('res-investor-revenue').innerText = formatCurrency(totalSaving * invShare);
+                                }
+                            }
+                        });
+
+                        connection.on('close', function() {
+                            document.getElementById('host-status-text').innerText = "HP Terputus. Siap dihubungkan.";
+                            document.getElementById('host-status-dot').className = "flex w-2 h-2 rounded-full bg-emerald-500";
+                        });
+                    });
+                } catch(error) {
+                    console.warn("Sistem diblokir oleh lingkungan eksekusi.", error);
+                    document.getElementById('sidebar-pin').innerText = "OFF";
+                    document.getElementById('host-status-text').innerText = "Remote nonaktif di Canvas Preview";
+                    document.getElementById('host-status-dot').className = "flex w-2 h-2 rounded-full bg-red-500";
+                }
             }
 
             initHost();
 
-            // Fungsi Modal UI
+            // Fungsi UI Laptop
             window.openQRModal = function() {
+                if(isPreviewEnv || document.getElementById('sidebar-pin').innerText === "OFF") {
+                    return alert("Fitur Remote tidak dapat digunakan di dalam layar Preview (Canvas) ini. Silakan host file ini secara online (misal: di Github Pages/Vercel) atau buka file HTML langsung di tab browser baru Anda untuk menggunakan fitur Remote.");
+                }
                 if(!window.myShortPin) return alert("Sistem masih mempersiapkan koneksi...");
                 document.getElementById('qrModal').classList.remove('hidden');
                 document.getElementById('qrcode').innerHTML = ''; 
                 document.getElementById('connection-status').innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menunggu koneksi HP...';
-                document.getElementById('session-pin').innerText = window.myShortPin;
+                if(document.getElementById('session-pin-modal')) document.getElementById('session-pin-modal').innerText = window.myShortPin;
 
                 const baseUrl = window.location.href.split('?')[0]; 
                 const remoteUrl = baseUrl + '?remote=true&hostId=' + window.myHostId;
@@ -825,10 +908,12 @@
             }
 
             window.closeQRModal = function() { document.getElementById('qrModal').classList.add('hidden'); }
+            
             window.openPinModal = function() {
                 document.getElementById('pinModal').classList.remove('hidden');
                 setTimeout(() => document.getElementById('pin-input').focus(), 100);
             }
+            
             window.closePinModal = function() { document.getElementById('pinModal').classList.add('hidden'); }
             
             window.submitPin = function() {
